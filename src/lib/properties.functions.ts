@@ -20,16 +20,26 @@ function asStringArray(value: unknown): string[] | undefined {
 
 function validateList(data: unknown): ListInput {
   const d = (data ?? {}) as Record<string, unknown>;
-  return {
-    typeSlugs: asStringArray(d.typeSlugs),
-    excludeTypeSlugs: asStringArray(d.excludeTypeSlugs),
-    statusSlugs: asStringArray(d.statusSlugs),
-    citySlug: typeof d.citySlug === "string" && d.citySlug ? d.citySlug : undefined,
-    search: typeof d.search === "string" && d.search ? d.search.slice(0, 120) : undefined,
-    page: typeof d.page === "number" && Number.isFinite(d.page) ? Math.trunc(d.page) : 1,
-    perPage:
-      typeof d.perPage === "number" && Number.isFinite(d.perPage) ? Math.trunc(d.perPage) : 12,
-  };
+  const out: ListInput = {};
+
+  const typeSlugs = asStringArray(d["typeSlugs"]);
+  if (typeSlugs) out.typeSlugs = typeSlugs;
+  const excludeTypeSlugs = asStringArray(d["excludeTypeSlugs"]);
+  if (excludeTypeSlugs) out.excludeTypeSlugs = excludeTypeSlugs;
+  const statusSlugs = asStringArray(d["statusSlugs"]);
+  if (statusSlugs) out.statusSlugs = statusSlugs;
+
+  const citySlug = d["citySlug"];
+  if (typeof citySlug === "string" && citySlug) out.citySlug = citySlug;
+  const search = d["search"];
+  if (typeof search === "string" && search) out.search = search.slice(0, 120);
+
+  const page = d["page"];
+  out.page = typeof page === "number" && Number.isFinite(page) ? Math.trunc(page) : 1;
+  const perPage = d["perPage"];
+  out.perPage = typeof perPage === "number" && Number.isFinite(perPage) ? Math.trunc(perPage) : 12;
+
+  return out;
 }
 
 export const fetchProperties = createServerFn({ method: "GET" })
