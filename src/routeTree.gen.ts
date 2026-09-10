@@ -10,33 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BuscaRouteImport } from './routes/busca'
+import { Route as ChacarasRouteImport } from './routes/chacaras'
+import { Route as ChalesRouteImport } from './routes/chales'
+import { Route as PesqueirosRouteImport } from './routes/pesqueiros'
+import { Route as SitiosRouteImport } from './routes/sitios'
+import { Route as TemporadaRouteImport } from './routes/temporada'
+import { Route as TiposDeImoveisRuraisRouteImport } from './routes/tipos-de-imoveis-rurais'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BuscaRoute = BuscaRouteImport.update({
+  id: '/busca',
+  path: '/busca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChacarasRoute = ChacarasRouteImport.update({
+  id: '/chacaras',
+  path: '/chacaras',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChalesRoute = ChalesRouteImport.update({
+  id: '/chales',
+  path: '/chales',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PesqueirosRoute = PesqueirosRouteImport.update({
+  id: '/pesqueiros',
+  path: '/pesqueiros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitiosRoute = SitiosRouteImport.update({
+  id: '/sitios',
+  path: '/sitios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemporadaRoute = TemporadaRouteImport.update({
+  id: '/temporada',
+  path: '/temporada',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TiposDeImoveisRuraisRoute = TiposDeImoveisRuraisRouteImport.update({
+  id: '/tipos-de-imoveis-rurais',
+  path: '/tipos-de-imoveis-rurais',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/busca': typeof BuscaRoute
+  '/chacaras': typeof ChacarasRoute
+  '/chales': typeof ChalesRoute
+  '/pesqueiros': typeof PesqueirosRoute
+  '/sitios': typeof SitiosRoute
+  '/temporada': typeof TemporadaRoute
+  '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/busca': typeof BuscaRoute
+  '/chacaras': typeof ChacarasRoute
+  '/chales': typeof ChalesRoute
+  '/pesqueiros': typeof PesqueirosRoute
+  '/sitios': typeof SitiosRoute
+  '/temporada': typeof TemporadaRoute
+  '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/busca': typeof BuscaRoute
+  '/chacaras': typeof ChacarasRoute
+  '/chales': typeof ChalesRoute
+  '/pesqueiros': typeof PesqueirosRoute
+  '/sitios': typeof SitiosRoute
+  '/temporada': typeof TemporadaRoute
+  '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/busca'
+    | '/chacaras'
+    | '/chales'
+    | '/pesqueiros'
+    | '/sitios'
+    | '/temporada'
+    | '/tipos-de-imoveis-rurais'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/busca'
+    | '/chacaras'
+    | '/chales'
+    | '/pesqueiros'
+    | '/sitios'
+    | '/temporada'
+    | '/tipos-de-imoveis-rurais'
+  id:
+    | '__root__'
+    | '/'
+    | '/busca'
+    | '/chacaras'
+    | '/chales'
+    | '/pesqueiros'
+    | '/sitios'
+    | '/temporada'
+    | '/tipos-de-imoveis-rurais'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BuscaRoute: typeof BuscaRoute
+  ChacarasRoute: typeof ChacarasRoute
+  ChalesRoute: typeof ChalesRoute
+  PesqueirosRoute: typeof PesqueirosRoute
+  SitiosRoute: typeof SitiosRoute
+  TemporadaRoute: typeof TemporadaRoute
+  TiposDeImoveisRuraisRoute: typeof TiposDeImoveisRuraisRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +143,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/busca': {
+      id: '/busca'
+      path: '/busca'
+      fullPath: '/busca'
+      preLoaderRoute: typeof BuscaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chacaras': {
+      id: '/chacaras'
+      path: '/chacaras'
+      fullPath: '/chacaras'
+      preLoaderRoute: typeof ChacarasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chales': {
+      id: '/chales'
+      path: '/chales'
+      fullPath: '/chales'
+      preLoaderRoute: typeof ChalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pesqueiros': {
+      id: '/pesqueiros'
+      path: '/pesqueiros'
+      fullPath: '/pesqueiros'
+      preLoaderRoute: typeof PesqueirosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitios': {
+      id: '/sitios'
+      path: '/sitios'
+      fullPath: '/sitios'
+      preLoaderRoute: typeof SitiosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/temporada': {
+      id: '/temporada'
+      path: '/temporada'
+      fullPath: '/temporada'
+      preLoaderRoute: typeof TemporadaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tipos-de-imoveis-rurais': {
+      id: '/tipos-de-imoveis-rurais'
+      path: '/tipos-de-imoveis-rurais'
+      fullPath: '/tipos-de-imoveis-rurais'
+      preLoaderRoute: typeof TiposDeImoveisRuraisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BuscaRoute: BuscaRoute,
+  ChacarasRoute: ChacarasRoute,
+  ChalesRoute: ChalesRoute,
+  PesqueirosRoute: PesqueirosRoute,
+  SitiosRoute: SitiosRoute,
+  TemporadaRoute: TemporadaRoute,
+  TiposDeImoveisRuraisRoute: TiposDeImoveisRuraisRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
