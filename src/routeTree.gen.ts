@@ -17,6 +17,7 @@ import { Route as PesqueirosRouteImport } from './routes/pesqueiros'
 import { Route as SitiosRouteImport } from './routes/sitios'
 import { Route as TemporadaRouteImport } from './routes/temporada'
 import { Route as TiposDeImoveisRuraisRouteImport } from './routes/tipos-de-imoveis-rurais'
+import { Route as ImovelSlugRouteImport } from './routes/imovel.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,11 @@ const TiposDeImoveisRuraisRoute = TiposDeImoveisRuraisRouteImport.update({
   path: '/tipos-de-imoveis-rurais',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImovelSlugRoute = ImovelSlugRouteImport.update({
+  id: '/imovel/$slug',
+  path: '/imovel/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
+  '/imovel/$slug': typeof ImovelSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
+  '/imovel/$slug': typeof ImovelSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
+  '/imovel/$slug': typeof ImovelSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
+    | '/imovel/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
+    | '/imovel/$slug'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
+    | '/imovel/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   SitiosRoute: typeof SitiosRoute
   TemporadaRoute: typeof TemporadaRoute
   TiposDeImoveisRuraisRoute: typeof TiposDeImoveisRuraisRoute
+  ImovelSlugRoute: typeof ImovelSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TiposDeImoveisRuraisRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/imovel/$slug': {
+      id: '/imovel/$slug'
+      path: '/imovel/$slug'
+      fullPath: '/imovel/$slug'
+      preLoaderRoute: typeof ImovelSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitiosRoute: SitiosRoute,
   TemporadaRoute: TemporadaRoute,
   TiposDeImoveisRuraisRoute: TiposDeImoveisRuraisRoute,
+  ImovelSlugRoute: ImovelSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
