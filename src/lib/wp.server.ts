@@ -1,30 +1,85 @@
 /**
  * Adapter do WordPress (headless).
- * Fonte de verdade: casanafloresta.com.br — REST API pública /wp-json/wp/v2.
+ * Fonte legada: portal.casanafloresta.com.br — REST API pública /wp-json/wp/v2.
  * Nunca inventar campos: tudo aqui foi confirmado na auditoria da API.
  */
 
-const WP_BASE = "https://www.casanafloresta.com.br/wp-json/wp/v2";
-const CACHE_TTL_MS = 5 * 60 * 1000;
-const cache = new Map<string, { at: number; value: { json: any; total: number } }>();
+import { siteConfig, toPublicUrl } from "./site-config";
 
-async function wpFetch(path: string): Promise<{ json: any; total: number }> {
-  const cached = cache.get(path);
-  if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.value;
+const WP_BASE = `${siteConfig.wordpressOrigin}/wp-json/wp/v2`;
+const FRESH_TTL_MS = 5 * 60 * 1000;
+const STALE_TTL_MS = 24 * 60 * 60 * 1000;
+const REQUEST_TIMEOUT_MS = 20_000;
+type WpResponse = { json: any; total: number };
+type CacheEntry = { at: number; value: WpResponse };
+const cache = new Map<string, CacheEntry>();
+const inFlight = new Map<string, Promise<WpResponse>>();
 
-  const res = await fetch(`${WP_BASE}${path}`, {
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    console.error(`WordPress request failed [${res.status}] ${path}: ${body.slice(0, 500)}`);
-    throw new Error(`WordPress request failed [${res.status}]`);
+function logFetch(path: string, startedAt: number, status: number | string, cacheState: string) {
+  console.info(
+    `[wp-fetch] endpoint=${path} duration_ms=${Date.now() - startedAt} status=${status} cache=${cacheState}`,
+  );
+}
+
+async function fetchFromWordPress(path: string, cacheState: "miss" | "revalidate"): Promise<WpResponse> {
+  const existing = inFlight.get(path);
+  if (existing) {
+    logFetch(path, Date.now(), "pending", "deduped");
+    return existing;
   }
-  const total = Number(res.headers.get("x-wp-total") ?? "0");
-  const value = { json: await res.json(), total };
-  cache.set(path, { at: Date.now(), value });
-  if (cache.size > 200) cache.delete(cache.keys().next().value as string);
-  return value;
+
+  const startedAt = Date.now();
+  const request = (async () => {
+    try {
+      const res = await fetch(`${WP_BASE}${path}`, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        logFetch(path, startedAt, res.status, cacheState);
+        console.error(`WordPress request failed [${res.status}] ${path}: ${body.slice(0, 500)}`);
+        throw new Error(`WordPress request failed [${res.status}]`);
+      }
+      const value = {
+        json: await res.json(),
+        total: Number(res.headers.get("x-wp-total") ?? "0"),
+      };
+      cache.set(path, { at: Date.now(), value });
+      if (cache.size > 200) cache.delete(cache.keys().next().value as string);
+      logFetch(path, startedAt, res.status, cacheState);
+      return value;
+    } catch (error) {
+      if (error instanceof Error && error.name === "TimeoutError") {
+        logFetch(path, startedAt, "timeout", cacheState);
+        throw new Error(`WordPress request timed out after ${REQUEST_TIMEOUT_MS}ms`);
+      }
+      throw error;
+    } finally {
+      inFlight.delete(path);
+    }
+  })();
+
+  inFlight.set(path, request);
+  return request;
+}
+
+async function wpFetch(path: string): Promise<WpResponse> {
+  const startedAt = Date.now();
+  const cached = cache.get(path);
+  const age = cached ? Date.now() - cached.at : Number.POSITIVE_INFINITY;
+  if (cached && age < FRESH_TTL_MS) {
+    logFetch(path, startedAt, 200, "hit");
+    return cached.value;
+  }
+  if (cached && age < STALE_TTL_MS) {
+    logFetch(path, startedAt, 200, "stale");
+    void fetchFromWordPress(path, "revalidate").catch((error) => {
+      console.error(`[wp-fetch] background revalidation failed endpoint=${path}`, error);
+    });
+    return cached.value;
+  }
+  return fetchFromWordPress(path, "miss");
 }
 
 
@@ -189,21 +244,30 @@ export async function listProperties(params: ListParams): Promise<{
     order: "desc",
   });
 
+  const [typeIds, excludedTypeIds, statusIds, cityIds] = await Promise.all([
+    params.typeSlugs?.length ? getTermIds("property_type", params.typeSlugs) : [],
+    params.excludeTypeSlugs?.length
+      ? getTermIds("property_type", params.excludeTypeSlugs)
+      : [],
+    params.statusSlugs?.length ? getTermIds("property_status", params.statusSlugs) : [],
+    params.citySlug ? getTermIds("property_city", [params.citySlug]) : [],
+  ]);
+
   if (params.typeSlugs?.length) {
-    const ids = await getTermIds("property_type", params.typeSlugs);
+    const ids = typeIds;
     if (!ids.length) return { items: [], total: 0 };
     qs.set("property_type", ids.join(","));
   }
   if (params.excludeTypeSlugs?.length) {
-    const ids = await getTermIds("property_type", params.excludeTypeSlugs);
+    const ids = excludedTypeIds;
     if (ids.length) qs.set("property_type_exclude", ids.join(","));
   }
   if (params.statusSlugs?.length) {
-    const ids = await getTermIds("property_status", params.statusSlugs);
+    const ids = statusIds;
     if (ids.length) qs.set("property_status", ids.join(","));
   }
   if (params.citySlug) {
-    const ids = await getTermIds("property_city", [params.citySlug]);
+    const ids = cityIds;
     if (ids.length) qs.set("property_city", ids.join(","));
   }
   if (params.search) qs.set("search", params.search);
@@ -258,6 +322,7 @@ export async function getPropertyBySlug(slug: string): Promise<PropertyDetail | 
     refId: meta(p, "fave_property_id"),
     seoTitle: p?.yoast_head_json?.title ?? null,
     seoDescription: p?.yoast_head_json?.description ?? null,
-    originalUrl: p.link,
+    originalUrl:
+      toPublicUrl(p.link) ?? `${siteConfig.publicSiteUrl}/imovel/${encodeURIComponent(card.slug)}`,
   };
 }
