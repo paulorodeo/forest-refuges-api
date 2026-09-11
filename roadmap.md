@@ -15,6 +15,9 @@
 - [x] P0 de navegação: preload por intenção e barra global de progresso
 - [x] P0 de diagnóstico: logs de endpoint, duração, status e estado do cache
 - [x] P0 de resiliência: listagens não retornam erro 500 quando o WordPress expira sem cache
+- [ ] P0 mobile: descoberta imediata da imagem LCP, preload/eager/high priority e imagens responsivas
+- [ ] P0 mobile: reduzir bloqueio de fontes/CSS e medir Lighthouse mobile antes/depois
+- [ ] P0 mobile: auditar cache das imagens externas em `ausente.casanafloresta.com.br`
 
 
 ## Aberto / dependente do usuário
@@ -27,6 +30,8 @@
 - [ ] Conteúdo editorial: News em `/blog`, artigo individual, cards e 3 posts recentes na home
 - [ ] Blog normalizado: WordPressBlogAdapter + PayloadBlogAdapter → BlogPost, com prioridade futura do Payload
 - [ ] Blog resiliente: cache fresh/stale, deduplicação, timeout, logs e resposta degradada sem HTTP 500
+- [ ] Auditoria editorial determinística: distinguir importações automáticas de vídeos de posts legítimos, sem excluir apenas por `videos-youtube`
+- [ ] Relatório editorial: totais bruto, taxonomia, importados automáticos, legítimos dentro da taxonomia, assinatura e corpus final
 - [ ] SEO editorial: canonical público, Open Graph, BlogPosting e breadcrumbs estruturados
 - [ ] Fallback editorial específico usando `contentType: "article"`
 - [ ] Imóveis dual-source: WordPressPropertyAdapter + PayloadPropertyAdapter → Property
