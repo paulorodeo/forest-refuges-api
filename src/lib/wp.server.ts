@@ -1,10 +1,11 @@
 /**
  * Adapter do WordPress (headless).
- * Fonte legada: portal.casanafloresta.com.br — REST API pública /wp-json/wp/v2.
+ * Fonte legada: www2.casanafloresta.com.br — REST API pública /wp-json/wp/v2.
  * Nunca inventar campos: tudo aqui foi confirmado na auditoria da API.
  */
 
 import { siteConfig, toPublicUrl } from "./site-config";
+import type { BlogListResult, BlogPost, BlogPostResult } from "./blog.types";
 
 const WP_BASE = `${siteConfig.wordpressOrigin}/wp-json/wp/v2`;
 const FRESH_TTL_MS = 5 * 60 * 1000;
@@ -331,4 +332,79 @@ export async function getPropertyBySlug(slug: string): Promise<PropertyDetail | 
     originalUrl:
       toPublicUrl(p.link) ?? `${siteConfig.publicSiteUrl}/imovel/${encodeURIComponent(card.slug)}`,
   };
+}
+
+function hasYouTubeEmbed(html: string): boolean {
+  return /(?:youtube\.com\/(?:embed|watch)|youtu\.be\/|\[embed\][^[]*youtube|wp:embed[^>]*youtube)/i.test(
+    html,
+  );
+}
+
+function isAutomaticVideoImport(post: any): boolean {
+  const html = String(post?.content?.rendered ?? "");
+  const plain = stripHtml(html);
+  const headingCount = (html.match(/<h[2-4]\b/gi) ?? []).length;
+  const linkCount = (html.match(/(?:youtube\.com|youtu\.be)/gi) ?? []).length;
+  const inLegacyVideoCategory = Array.isArray(post?.categories) && post.categories.includes(5);
+  return inLegacyVideoCategory && hasYouTubeEmbed(html) && linkCount > 0 && plain.length < 1_500 && headingCount < 2;
+}
+
+function toBlogPost(post: any): BlogPost {
+  const media = featured(post);
+  const categories = embeddedTerms(post, "category").map((term) => term.name);
+  const tags = embeddedTerms(post, "post_tag").map((term) => term.name);
+  const author = post?._embedded?.author?.[0];
+  const slug = String(post.slug ?? "");
+  const historicalUrl = typeof post.link === "string" ? post.link : null;
+  return {
+    id: Number(post.id),
+    source: "wordpress",
+    slug,
+    title: decodeEntities(String(post?.title?.rendered ?? "")),
+    excerpt: stripHtml(String(post?.excerpt?.rendered ?? "")).slice(0, 240),
+    contentHtml: String(post?.content?.rendered ?? ""),
+    image: media.src,
+    imageAlt: media.alt,
+    authorName: author?.name ? decodeEntities(String(author.name)) : null,
+    publishedAt: String(post.date ?? ""),
+    modifiedAt: String(post.modified ?? post.date ?? ""),
+    categories,
+    tags,
+    seoTitle: post?.yoast_head_json?.title ?? null,
+    seoDescription: post?.yoast_head_json?.description ?? null,
+    historicalUrl,
+    historicalPath: historicalUrl ? new URL(historicalUrl).pathname : `/${slug}/`,
+    canonicalUrl: `${siteConfig.publicSiteUrl}/blog/${encodeURIComponent(slug)}`,
+  };
+}
+
+export class WordPressBlogAdapter {
+  async list(limit = 12): Promise<BlogListResult> {
+    try {
+      const perPage = Math.min(40, Math.max(limit * 2, 12));
+      const { json, total } = await wpFetch(
+        `/posts?per_page=${perPage}&_embed=1&orderby=date&order=desc`,
+      );
+      const posts = (json as any[])
+        .filter((post) => !isAutomaticVideoImport(post))
+        .map(toBlogPost)
+        .slice(0, limit);
+      return { items: posts, rawTotal: total, unavailable: false };
+    } catch (error) {
+      console.error("[wp-blog] returning safe unavailable list", error);
+      return { items: [], rawTotal: 0, unavailable: true };
+    }
+  }
+
+  async getBySlug(slug: string): Promise<BlogPostResult> {
+    try {
+      const { json } = await wpFetch(`/posts?slug=${encodeURIComponent(slug)}&_embed=1`);
+      const post = (json as any[])[0];
+      if (!post || isAutomaticVideoImport(post)) return { status: "not-found" };
+      return { status: "ok", post: toBlogPost(post) };
+    } catch (error) {
+      console.error("[wp-blog] returning controlled unavailable detail", error);
+      return { status: "unavailable" };
+    }
+  }
 }

@@ -13,9 +13,9 @@
 
 1. **Configuração e resiliência**
    - Atualizar a configuração central para `WORDPRESS_ORIGIN=https://www2.casanafloresta.com.br`, preservando `PUBLIC_SITE_URL=https://www.casanafloresta.com.br` e o espaço para Payload.
-   - Remover referências ativas a `portal.` e normalizar URLs retornadas pelo WordPress para o domínio público.
+   - Remover referências ativas a `portal.` e normalizar somente permalinks públicos retornados pelo WordPress. Preservar origens reais de `/wp-content/uploads/`, imagens, REST, endpoints técnicos, Object Storage, CDN e arquivos estáticos.
    - Consolidar o cliente REST resiliente para imóveis e blog: fresh/stale cache, revalidação em segundo plano, deduplicação, timeout, fallback stale após falha e logs de duração/status/cache.
-   - Garantir respostas degradadas tipadas para listas e detalhes, sem levar indisponibilidade do WordPress ao erro global.
+   - Garantir respostas degradadas tipadas sem levar indisponibilidade do WordPress ao erro global: listas sem stale mostram estado seguro; detalhe sem stale retorna uma indisponibilidade controlada e apropriada, nunca um 200 enganoso ou 500 acidental.
 
 2. **P0 de performance mobile**
    - Tornar a imagem principal imediatamente prioritária no HTML inicial com `loading="eager"`, `fetchpriority="high"` e preload por rota apontando para exatamente o mesmo recurso.
@@ -29,6 +29,7 @@
    - Identificar a taxonomia `videos-youtube`, medir seus posts e detectar a assinatura estrutural real do importador por conteúdo, embeds/URLs/shortcodes, autor, datas e metadata exposta.
    - Tratar `videos-youtube` apenas como sinal. O adapter só excluirá um post quando sinais estruturais suficientes indicarem importação automática; o post `7-captacao-e-nutricao-de-leads` será usado como caso de proteção contra falso positivo.
    - Produzir os totais bruto, marcado pela taxonomia, automático, editorial legítimo dentro dela e corpus editorial estimado, sem classificação manual dos 1.220 registros.
+   - Auditar a estrutura histórica dos permalinks diretamente nos registros. Definir uma única URL pública por artigo e redirects 301 exatos quando a URL histórica não puder ser preservada; não criar duplicidade com `/blog/$slug`.
 
 4. **Domínio editorial e adapters**
    - Criar o modelo normalizado `BlogPost` e resultados paginados com estado de indisponibilidade.
@@ -43,7 +44,7 @@
 
 6. **Rotas e SEO**
    - Criar `/blog` com breadcrumb, destaque, grid real, categorias disponíveis, paginação e CTA relacionado.
-   - Criar `/blog/$slug` preservando o slug legado, com conteúdo completo, relacionados, CTA, canonical em `www.`, metadata social, `BlogPosting` e breadcrumbs em JSON-LD.
+   - Criar a rota individual segundo o resultado da auditoria de permalinks, com conteúdo completo, relacionados, CTA, canonical único em `www.`, metadata social, `BlogPosting` e breadcrumbs em JSON-LD.
    - Adicionar três conteúdos recentes na home usando o mesmo card, sem redesenhar as demais seções.
 
 7. **Validação**

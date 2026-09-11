@@ -30,6 +30,9 @@
 - [ ] Conteúdo editorial: News em `/blog`, artigo individual, cards e 3 posts recentes na home
 - [ ] Blog normalizado: WordPressBlogAdapter + PayloadBlogAdapter → BlogPost, com prioridade futura do Payload
 - [ ] Blog resiliente: cache fresh/stale, deduplicação, timeout, logs e resposta degradada sem HTTP 500
+- [ ] Reescrita seletiva: normalizar apenas permalinks públicos, preservando uploads, mídia, REST, CDN e Object Storage
+- [ ] Auditar permalinks históricos dos posts e definir URL canônica única com redirects 301 exatos quando necessários
+- [ ] Detalhes sem stale: resposta controlada de indisponibilidade, sem 200 enganoso, 500 acidental ou Error Boundary global
 - [ ] Auditoria editorial determinística: distinguir importações automáticas de vídeos de posts legítimos, sem excluir apenas por `videos-youtube`
 - [ ] Relatório editorial: totais bruto, taxonomia, importados automáticos, legítimos dentro da taxonomia, assinatura e corpus final
 - [ ] SEO editorial: canonical público, Open Graph, BlogPosting e breadcrumbs estruturados
