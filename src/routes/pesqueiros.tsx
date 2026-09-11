@@ -25,7 +25,7 @@ export const Route = createFileRoute("/pesqueiros")({
 });
 
 function PesqueirosPage() {
-  const { items, total } = Route.useLoaderData();
+  const { items, total, unavailable } = Route.useLoaderData();
 
   return (
     <ListingView
@@ -34,6 +34,7 @@ function PesqueirosPage() {
       typeSlug="pesqueiro"
       items={items}
       total={total}
+      unavailable={unavailable}
     />
   );
 }

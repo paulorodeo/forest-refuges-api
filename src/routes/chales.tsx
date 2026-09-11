@@ -28,7 +28,7 @@ export const Route = createFileRoute("/chales")({
 });
 
 function ChalesPage() {
-  const { items, total } = Route.useLoaderData();
+  const { items, total, unavailable } = Route.useLoaderData();
 
   return (
     <ListingView
@@ -37,6 +37,7 @@ function ChalesPage() {
       typeSlug="chale"
       items={items}
       total={total}
+      unavailable={unavailable}
     />
   );
 }

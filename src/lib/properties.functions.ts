@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-export type { PropertyCardData, PropertyDetail, WpTerm } from "./wp.server";
+export type { PropertyCardData, PropertyDetail, PropertyListResult, WpTerm } from "./wp.server";
 
 type ListInput = {
   typeSlugs?: string[];
@@ -71,5 +71,10 @@ export const fetchTerms = createServerFn({ method: "GET" })
   })
   .handler(async ({ data }) => {
     const { getTerms } = await import("./wp.server");
-    return getTerms(data.taxonomy);
+    try {
+      return await getTerms(data.taxonomy);
+    } catch (error) {
+      console.error("[wp-terms] returning safe empty result", error);
+      return [];
+    }
   });

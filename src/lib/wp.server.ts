@@ -9,7 +9,7 @@ import { siteConfig, toPublicUrl } from "./site-config";
 const WP_BASE = `${siteConfig.wordpressOrigin}/wp-json/wp/v2`;
 const FRESH_TTL_MS = 5 * 60 * 1000;
 const STALE_TTL_MS = 24 * 60 * 60 * 1000;
-const REQUEST_TIMEOUT_MS = 20_000;
+const REQUEST_TIMEOUT_MS = 8_000;
 type WpResponse = { json: any; total: number };
 type CacheEntry = { at: number; value: WpResponse };
 const cache = new Map<string, CacheEntry>();
@@ -146,6 +146,12 @@ export type PropertyCardData = {
   statusSlug: string | null;
 };
 
+export type PropertyListResult = {
+  items: PropertyCardData[];
+  total: number;
+  unavailable: boolean;
+};
+
 export type PropertyDetail = PropertyCardData & {
   contentHtml: string;
   gallery: { src: string; alt: string }[];
@@ -230,50 +236,50 @@ export type ListParams = {
   perPage?: number;
 };
 
-export async function listProperties(params: ListParams): Promise<{
-  items: PropertyCardData[];
-  total: number;
-}> {
-  const page = Math.max(1, params.page ?? 1);
-  const perPage = Math.min(24, Math.max(1, params.perPage ?? 12));
-  const qs = new URLSearchParams({
-    per_page: String(perPage),
-    page: String(page),
-    _embed: "1",
-    orderby: "date",
-    order: "desc",
-  });
+export async function listProperties(params: ListParams): Promise<PropertyListResult> {
+  try {
+    const page = Math.max(1, params.page ?? 1);
+    const perPage = Math.min(24, Math.max(1, params.perPage ?? 12));
+    const qs = new URLSearchParams({
+      per_page: String(perPage),
+      page: String(page),
+      _embed: "1",
+      orderby: "date",
+      order: "desc",
+    });
 
-  const [typeIds, excludedTypeIds, statusIds, cityIds] = await Promise.all([
-    params.typeSlugs?.length ? getTermIds("property_type", params.typeSlugs) : [],
-    params.excludeTypeSlugs?.length
-      ? getTermIds("property_type", params.excludeTypeSlugs)
-      : [],
-    params.statusSlugs?.length ? getTermIds("property_status", params.statusSlugs) : [],
-    params.citySlug ? getTermIds("property_city", [params.citySlug]) : [],
-  ]);
+    const [typeIds, excludedTypeIds, statusIds, cityIds] = await Promise.all([
+      params.typeSlugs?.length ? getTermIds("property_type", params.typeSlugs) : [],
+      params.excludeTypeSlugs?.length
+        ? getTermIds("property_type", params.excludeTypeSlugs)
+        : [],
+      params.statusSlugs?.length ? getTermIds("property_status", params.statusSlugs) : [],
+      params.citySlug ? getTermIds("property_city", [params.citySlug]) : [],
+    ]);
 
-  if (params.typeSlugs?.length) {
-    const ids = typeIds;
-    if (!ids.length) return { items: [], total: 0 };
-    qs.set("property_type", ids.join(","));
-  }
-  if (params.excludeTypeSlugs?.length) {
-    const ids = excludedTypeIds;
-    if (ids.length) qs.set("property_type_exclude", ids.join(","));
-  }
-  if (params.statusSlugs?.length) {
-    const ids = statusIds;
-    if (ids.length) qs.set("property_status", ids.join(","));
-  }
-  if (params.citySlug) {
-    const ids = cityIds;
-    if (ids.length) qs.set("property_city", ids.join(","));
-  }
-  if (params.search) qs.set("search", params.search);
+    if (params.typeSlugs?.length) {
+      if (!typeIds.length) return { items: [], total: 0, unavailable: false };
+      qs.set("property_type", typeIds.join(","));
+    }
+    if (params.excludeTypeSlugs?.length && excludedTypeIds.length) {
+      qs.set("property_type_exclude", excludedTypeIds.join(","));
+    }
+    if (params.statusSlugs?.length) {
+      if (!statusIds.length) return { items: [], total: 0, unavailable: false };
+      qs.set("property_status", statusIds.join(","));
+    }
+    if (params.citySlug) {
+      if (!cityIds.length) return { items: [], total: 0, unavailable: false };
+      qs.set("property_city", cityIds.join(","));
+    }
+    if (params.search) qs.set("search", params.search);
 
-  const { json, total } = await wpFetch(`/properties?${qs.toString()}`);
-  return { items: (json as any[]).map(toCard), total };
+    const { json, total } = await wpFetch(`/properties?${qs.toString()}`);
+    return { items: (json as any[]).map(toCard), total, unavailable: false };
+  } catch (error) {
+    console.error("[wp-properties] returning safe unavailable result", error);
+    return { items: [], total: 0, unavailable: true };
+  }
 }
 
 export async function getPropertyBySlug(slug: string): Promise<PropertyDetail | null> {

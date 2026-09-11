@@ -26,7 +26,7 @@ export const Route = createFileRoute("/temporada")({
 });
 
 function TemporadaPage() {
-  const { items, total } = Route.useLoaderData();
+  const { items, total, unavailable } = Route.useLoaderData();
 
   return (
     <ListingView
@@ -35,6 +35,7 @@ function TemporadaPage() {
       statusSlug="temporada"
       items={items}
       total={total}
+      unavailable={unavailable}
     />
   );
 }

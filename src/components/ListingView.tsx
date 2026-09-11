@@ -11,6 +11,7 @@ export function ListingView({
   statusSlug,
   items,
   total,
+  unavailable = false,
   children,
 }: {
   title: string;
@@ -19,6 +20,7 @@ export function ListingView({
   statusSlug?: string;
   items: PropertyCardData[];
   total: number;
+  unavailable?: boolean;
   children?: React.ReactNode;
 }) {
   const cover = getFallbackImage({
@@ -43,15 +45,21 @@ export function ListingView({
         <div className="relative mx-auto max-w-6xl px-4 py-16 text-forest-foreground sm:py-20">
           <h1 className="max-w-2xl text-3xl sm:text-4xl">{title}</h1>
           <p className="mt-4 max-w-2xl text-sm text-forest-foreground/85 sm:text-base">{intro}</p>
-          <p className="mt-6 text-sm text-forest-foreground/75">
-            {total} {total === 1 ? "imóvel publicado" : "imóveis publicados"}
-          </p>
+          {!unavailable && (
+            <p className="mt-6 text-sm text-forest-foreground/75">
+              {total} {total === 1 ? "imóvel publicado" : "imóveis publicados"}
+            </p>
+          )}
         </div>
       </section>
 
       <main className="mx-auto max-w-6xl px-4 py-12">
         {children}
-        {items.length === 0 ? (
+        {unavailable ? (
+          <p className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+            Os imóveis estão demorando para carregar. Tente novamente em alguns instantes.
+          </p>
+        ) : items.length === 0 ? (
           <p className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
             Nenhum imóvel publicado nesta seleção no momento. Veja outros refúgios disponíveis no
             portal.

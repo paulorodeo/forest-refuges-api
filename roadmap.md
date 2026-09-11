@@ -14,6 +14,7 @@
 - [x] P0 de desempenho: cache fresh/stale, revalidação em segundo plano, deduplicação e timeout
 - [x] P0 de navegação: preload por intenção e barra global de progresso
 - [x] P0 de diagnóstico: logs de endpoint, duração, status e estado do cache
+- [x] P0 de resiliência: listagens não retornam erro 500 quando o WordPress expira sem cache
 
 
 ## Aberto / dependente do usuário
