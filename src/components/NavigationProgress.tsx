@@ -1,7 +1,10 @@
 import { useRouterState } from "@tanstack/react-router";
 
 export function NavigationProgress() {
-  const isLoading = useRouterState({ select: (state) => state.isLoading });
+  const isLoading = useRouterState({
+    select: (state) =>
+      state.status === "pending" || state.isLoading || state.isTransitioning,
+  });
 
   return (
     <div
@@ -11,8 +14,8 @@ export function NavigationProgress() {
       aria-hidden={!isLoading}
     >
       <div
-        className={`h-full bg-accent shadow-sm transition-[transform,opacity] duration-200 motion-reduce:transition-none ${
-          isLoading ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"
+        className={`h-full origin-left bg-accent shadow-sm transition-[transform,opacity] duration-200 motion-reduce:transition-none ${
+          isLoading ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0"
         }`}
       />
     </div>
