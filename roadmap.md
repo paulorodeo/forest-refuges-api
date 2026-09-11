@@ -1,14 +1,16 @@
 # Casa na Floresta — Roadmap
 
-## Fase 1 (em andamento)
+## Fase 1
 - [x] Auditoria da API pública do WordPress (tipos, situações, regiões, campos, Yoast)
-- [ ] Design system (verde, terracota, areia, títulos serifados)
-- [ ] Adapter WordPress (server functions, sem credenciais — API pública)
-- [ ] Home: hero + busca + tipos + "por que comprar"
-- [ ] Páginas fortes: /chacaras, /sitios, /chales, /temporada, /pesqueiros
-- [ ] Agregadora: /tipos-de-imoveis-rurais (demais tipos)
-- [ ] Página do imóvel: /imovel/$slug com SEO
-- [ ] Sistema de imagens de fallback por tipo (getFallbackImage)
+- [x] Design system (verde, terracota, areia, títulos serifados)
+- [x] Adapter WordPress (server functions, sem credenciais — API pública, cache 5 min)
+- [x] Home: hero + busca + tipos + "por que comprar" + últimos imóveis
+- [x] Páginas fortes: /chacaras, /sitios, /chales, /temporada, /pesqueiros
+- [x] Agregadora: /tipos-de-imoveis-rurais (demais tipos)
+- [x] Página do imóvel: /imovel/$slug com SEO (Yoast + canonical para a URL atual)
+- [x] Sistema de imagens de fallback por tipo (getFallbackImage)
+- [x] Busca: /busca com palavra-chave e finalidade
+
 
 ## Aberto / dependente do usuário
 - [ ] Camada "Objetivo" (moradia, lazer, produção, investimento, turismo, eventos): não existe no WordPress. Aguarda decisão (criar taxonomia no WP x deduzir x adiar).
