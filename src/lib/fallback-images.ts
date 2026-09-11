@@ -8,6 +8,7 @@ import fazenda from "@/assets/fallback-fazenda.jpg";
 import refugioUrbano from "@/assets/fallback-refugio-urbano.jpg";
 import terreno from "@/assets/fallback-terreno.jpg";
 import generico from "@/assets/fallback-generico.jpg";
+import articleAsset from "@/assets/fallback-article.webp.asset.json";
 
 export type ContentType =
   | "property"
@@ -56,7 +57,8 @@ export function getFallbackImage(opts: {
   statusSlug?: string | null;
   locationSlug?: string | null;
 }): string {
-  const { propertyTypeSlug, statusSlug } = opts;
+  const { contentType, propertyTypeSlug, statusSlug } = opts;
+  if (contentType === "article") return articleAsset.url;
   if (propertyTypeSlug && BY_TYPE_SLUG[propertyTypeSlug]) {
     return BY_TYPE_SLUG[propertyTypeSlug];
   }
