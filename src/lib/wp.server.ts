@@ -5,8 +5,13 @@
  */
 
 const WP_BASE = "https://www.casanafloresta.com.br/wp-json/wp/v2";
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const cache = new Map<string, { at: number; value: { json: any; total: number } }>();
 
 async function wpFetch(path: string): Promise<{ json: any; total: number }> {
+  const cached = cache.get(path);
+  if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.value;
+
   const res = await fetch(`${WP_BASE}${path}`, {
     headers: { Accept: "application/json" },
   });
@@ -16,8 +21,12 @@ async function wpFetch(path: string): Promise<{ json: any; total: number }> {
     throw new Error(`WordPress request failed [${res.status}]`);
   }
   const total = Number(res.headers.get("x-wp-total") ?? "0");
-  return { json: await res.json(), total };
+  const value = { json: await res.json(), total };
+  cache.set(path, { at: Date.now(), value });
+  if (cache.size > 200) cache.delete(cache.keys().next().value as string);
+  return value;
 }
+
 
 export type WpTerm = { id: number; name: string; slug: string; count: number };
 
