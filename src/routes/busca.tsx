@@ -52,7 +52,7 @@ export const Route = createFileRoute("/busca")({
 });
 
 function BuscaPage() {
-  const { items, total } = Route.useLoaderData();
+  const { items, total, unavailable } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/busca" });
 
@@ -118,11 +118,17 @@ function BuscaPage() {
           })}
         </div>
 
-        <p className="mt-6 text-sm text-muted-foreground">
-          {total} {total === 1 ? "imóvel encontrado" : "imóveis encontrados"}
-        </p>
+        {!unavailable && (
+          <p className="mt-6 text-sm text-muted-foreground">
+            {total} {total === 1 ? "imóvel encontrado" : "imóveis encontrados"}
+          </p>
+        )}
 
-        {items.length === 0 ? (
+        {unavailable ? (
+          <p className="mt-6 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+            Os imóveis estão demorando para carregar. Tente novamente em alguns instantes.
+          </p>
+        ) : items.length === 0 ? (
           <p className="mt-6 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
             Nada encontrado para essa busca. Tente uma cidade, uma região ou um tipo de imóvel.
           </p>

@@ -28,7 +28,7 @@ export const Route = createFileRoute("/chacaras")({
 });
 
 function ChacarasPage() {
-  const { items, total } = Route.useLoaderData();
+  const { items, total, unavailable } = Route.useLoaderData();
 
   return (
     <ListingView
@@ -37,6 +37,7 @@ function ChacarasPage() {
       typeSlug="chacara"
       items={items}
       total={total}
+      unavailable={unavailable}
     />
   );
 }

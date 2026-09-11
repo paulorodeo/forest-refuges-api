@@ -1,10 +1,15 @@
 import { useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 export function NavigationProgress() {
-  const isLoading = useRouterState({
+  const [hydrated, setHydrated] = useState(false);
+  const routerIsLoading = useRouterState({
     select: (state) =>
       state.status === "pending" || state.isLoading || state.isTransitioning,
   });
+  const isLoading = hydrated && routerIsLoading;
+
+  useEffect(() => setHydrated(true), []);
 
   return (
     <div
