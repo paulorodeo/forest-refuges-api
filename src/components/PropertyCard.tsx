@@ -29,7 +29,8 @@ export function PropertyCard({
             alt={property.imageAlt || property.title}
             width={1200}
             height={900}
-            loading={priority ? "eager" : "lazy"}
+            loading="lazy"
+            fetchPriority={priority ? "auto" : "low"}
             className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           {property.typeName && (

@@ -4,7 +4,11 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PropertyCard } from "@/components/PropertyCard";
 import { fetchProperties } from "@/lib/properties.functions";
+import { fetchBlogPosts } from "@/lib/blog.functions";
 import { getFallbackImage } from "@/lib/fallback-images";
+import { BlogPostCard } from "@/components/BlogPostCard";
+import hero640 from "@/assets/hero-640.avif.asset.json";
+import hero1280 from "@/assets/hero-1280.avif.asset.json";
 
 const DESTAQUES = [
   {
@@ -46,7 +50,13 @@ const DESTAQUES = [
 ];
 
 export const Route = createFileRoute("/")({
-  loader: () => fetchProperties({ data: { perPage: 6 } }),
+  loader: async () => {
+    const [properties, posts] = await Promise.all([
+      fetchProperties({ data: { perPage: 6 } }),
+      fetchBlogPosts({ data: { limit: 3 } }),
+    ]);
+    return { properties, posts };
+  },
   head: () => ({
     meta: [
       { title: "Casa na Floresta | Chácaras, sítios e chalés para viver e descansar" },
@@ -66,14 +76,23 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [
+      {
+        rel: "preload",
+        as: "image",
+        href: hero1280.url,
+        imageSrcSet: `${hero640.url} 640w, ${hero1280.url} 1200w`,
+        imageSizes: "100vw",
+        fetchPriority: "high",
+      },
+    ],
   }),
   component: HomePage,
 });
 
 function HomePage() {
-  const { items } = Route.useLoaderData();
+  const { properties, posts } = Route.useLoaderData();
   const navigate = useNavigate();
-  const hero = getFallbackImage({ contentType: "type", propertyTypeSlug: "chacara" });
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,10 +100,14 @@ function HomePage() {
 
       <section className="relative isolate overflow-hidden">
         <img
-          src={hero}
-          alt=""
-          width={1920}
-          height={1080}
+          src={hero1280.url}
+          srcSet={`${hero640.url} 640w, ${hero1280.url} 1200w`}
+          sizes="100vw"
+          alt="Chácara cercada de natureza"
+          width={1200}
+          height={800}
+          loading="eager"
+          fetchPriority="high"
           className="absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-forest/70" />
@@ -196,9 +219,27 @@ function HomePage() {
             </Link>
           </div>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((property, i) => (
-              <PropertyCard key={property.id} property={property} priority={i < 3} />
+            {properties.items.map((property) => (
+              <PropertyCard key={property.id} property={property} />
             ))}
+          </div>
+        </section>
+
+        <section className="bg-sand py-16">
+          <div className="mx-auto max-w-6xl px-4">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <h2 className="text-2xl sm:text-3xl">Guias e inspiração</h2>
+              <Link to="/blog" className="text-sm font-medium text-primary hover:underline">
+                Ver todos os artigos
+              </Link>
+            </div>
+            {posts.unavailable ? (
+              <p className="mt-8 text-sm text-muted-foreground">Os artigos estão temporariamente indisponíveis.</p>
+            ) : (
+              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {posts.items.map((post) => <BlogPostCard key={post.id} post={post} />)}
+              </div>
+            )}
           </div>
         </section>
       </main>

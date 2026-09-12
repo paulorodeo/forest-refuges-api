@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { setResponseStatus } from "@tanstack/react-start/server";
 export type { BlogListResult, BlogPost, BlogPostResult } from "./blog.types";
 
 export const fetchBlogPosts = createServerFn({ method: "GET" })
@@ -20,5 +21,7 @@ export const fetchBlogPost = createServerFn({ method: "GET" })
   })
   .handler(async ({ data }) => {
     const { WordPressBlogAdapter } = await import("./wp.server");
-    return new WordPressBlogAdapter().getBySlug(data.slug);
+    const result = await new WordPressBlogAdapter().getBySlug(data.slug);
+    if (result.status === "unavailable") setResponseStatus(503);
+    return result;
   });

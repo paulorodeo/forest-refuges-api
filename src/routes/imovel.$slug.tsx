@@ -8,22 +8,23 @@ import { formatLocation, formatPrice, formatSize } from "@/lib/format";
 
 export const Route = createFileRoute("/imovel/$slug")({
   loader: async ({ params }) => {
-    const property = await fetchProperty({ data: { slug: params.slug } });
-    if (!property) throw notFound();
-    return property;
+    const result = await fetchProperty({ data: { slug: params.slug } });
+    if (result.status === "not-found") throw notFound();
+    return result;
   },
   head: ({ loaderData }) => {
-    if (!loaderData) {
+    if (!loaderData || loaderData.status !== "ok") {
       return {
         meta: [{ title: "Imóvel não encontrado" }, { name: "robots", content: "noindex" }],
       };
     }
-    const title = loaderData.seoTitle ?? `${loaderData.title} | Casa na Floresta`;
+    const property = loaderData.property;
+    const title = property.seoTitle ?? `${property.title} | Casa na Floresta`;
     const description =
-      loaderData.seoDescription ??
-      loaderData.excerpt ??
-      `${loaderData.typeName ?? "Imóvel"} em ${formatLocation(loaderData.city, loaderData.state)}.`;
-    const image = loaderData.image ?? loaderData.gallery[0]?.src;
+      property.seoDescription ??
+      property.excerpt ??
+      `${property.typeName ?? "Imóvel"} em ${formatLocation(property.city, property.state)}.`;
+    const image = property.image ?? property.gallery[0]?.src;
     return {
       meta: [
         { title },
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/imovel/$slug")({
             ]
           : []),
       ],
-      links: [{ rel: "canonical", href: loaderData.originalUrl }],
+      links: [{ rel: "canonical", href: property.originalUrl }],
     };
   },
   notFoundComponent: PropertyNotFound,
@@ -68,7 +69,25 @@ function PropertyNotFound() {
 }
 
 function PropertyDetailPage() {
-  const property = Route.useLoaderData();
+  const result = Route.useLoaderData();
+  if (result.status === "unavailable") {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <main className="mx-auto max-w-3xl px-4 py-24 text-center">
+          <h1 className="text-3xl">Imóvel temporariamente indisponível</h1>
+          <p className="mt-4 text-muted-foreground">
+            Não foi possível consultar este anúncio agora. Tente novamente em alguns instantes.
+          </p>
+          <Link to="/busca" className="mt-8 inline-flex rounded-md bg-accent px-6 py-3 text-sm font-medium text-accent-foreground">
+            Ver outros imóveis
+          </Link>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+  const property = result.property;
   const cover =
     property.image ??
     property.gallery[0]?.src ??
