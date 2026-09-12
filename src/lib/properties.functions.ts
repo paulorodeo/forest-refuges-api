@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { setResponseStatus } from "@tanstack/react-start/server";
 
 export type { PropertyCardData, PropertyDetail, PropertyListResult, WpTerm } from "./wp.server";
 
@@ -57,7 +58,14 @@ export const fetchProperty = createServerFn({ method: "GET" })
   })
   .handler(async ({ data }) => {
     const { getPropertyBySlug } = await import("./wp.server");
-    return getPropertyBySlug(data.slug);
+    try {
+      const property = await getPropertyBySlug(data.slug);
+      return property ? { status: "ok" as const, property } : { status: "not-found" as const };
+    } catch (error) {
+      console.error("[wp-property] returning controlled unavailable detail", error);
+      setResponseStatus(503);
+      return { status: "unavailable" as const };
+    }
   });
 
 export const fetchTerms = createServerFn({ method: "GET" })
