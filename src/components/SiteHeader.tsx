@@ -9,6 +9,7 @@ const nav = [
   { to: "/temporada", label: "Temporada" },
   { to: "/pesqueiros", label: "Pesqueiros" },
   { to: "/tipos-de-imoveis-rurais", label: "Todos os tipos" },
+  { to: "/blog", label: "News" },
 ] as const;
 
 export function SiteHeader() {
