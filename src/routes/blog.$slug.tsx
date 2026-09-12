@@ -1,5 +1,4 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { setResponseStatus } from "@tanstack/react-start/server";
 import { CalendarDays, UserRound } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -11,7 +10,6 @@ export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params }) => {
     const result = await fetchBlogPost({ data: { slug: params.slug } });
     if (result.status === "not-found") throw notFound();
-    if (result.status === "unavailable") setResponseStatus(503);
     return result;
   },
   head: ({ loaderData }) => {
