@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SlugRouteImport } from './routes/$slug'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as BuscaRouteImport } from './routes/busca'
 import { Route as ChacarasRouteImport } from './routes/chacaras'
 import { Route as ChalesRouteImport } from './routes/chales'
@@ -17,11 +19,22 @@ import { Route as PesqueirosRouteImport } from './routes/pesqueiros'
 import { Route as SitiosRouteImport } from './routes/sitios'
 import { Route as TemporadaRouteImport } from './routes/temporada'
 import { Route as TiposDeImoveisRuraisRouteImport } from './routes/tipos-de-imoveis-rurais'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ImovelSlugRouteImport } from './routes/imovel.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SlugRoute = SlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuscaRoute = BuscaRouteImport.update({
@@ -59,6 +72,11 @@ const TiposDeImoveisRuraisRoute = TiposDeImoveisRuraisRouteImport.update({
   path: '/tipos-de-imoveis-rurais',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
 const ImovelSlugRoute = ImovelSlugRouteImport.update({
   id: '/imovel/$slug',
   path: '/imovel/$slug',
@@ -67,6 +85,8 @@ const ImovelSlugRoute = ImovelSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
+  '/blog': typeof BlogRouteWithChildren
   '/busca': typeof BuscaRoute
   '/chacaras': typeof ChacarasRoute
   '/chales': typeof ChalesRoute
@@ -74,10 +94,13 @@ export interface FileRoutesByFullPath {
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
+  '/blog': typeof BlogRouteWithChildren
   '/busca': typeof BuscaRoute
   '/chacaras': typeof ChacarasRoute
   '/chales': typeof ChalesRoute
@@ -85,11 +108,14 @@ export interface FileRoutesByTo {
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
+  '/blog': typeof BlogRouteWithChildren
   '/busca': typeof BuscaRoute
   '/chacaras': typeof ChacarasRoute
   '/chales': typeof ChalesRoute
@@ -97,12 +123,15 @@ export interface FileRoutesById {
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$slug'
+    | '/blog'
     | '/busca'
     | '/chacaras'
     | '/chales'
@@ -110,10 +139,13 @@ export interface FileRouteTypes {
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
+    | '/blog/$slug'
     | '/imovel/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$slug'
+    | '/blog'
     | '/busca'
     | '/chacaras'
     | '/chales'
@@ -121,10 +153,13 @@ export interface FileRouteTypes {
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
+    | '/blog/$slug'
     | '/imovel/$slug'
   id:
     | '__root__'
     | '/'
+    | '/$slug'
+    | '/blog'
     | '/busca'
     | '/chacaras'
     | '/chales'
@@ -132,11 +167,14 @@ export interface FileRouteTypes {
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
+    | '/blog/$slug'
     | '/imovel/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SlugRoute: typeof SlugRoute
+  BlogRoute: typeof BlogRouteWithChildren
   BuscaRoute: typeof BuscaRoute
   ChacarasRoute: typeof ChacarasRoute
   ChalesRoute: typeof ChalesRoute
@@ -154,6 +192,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$slug': {
+      id: '/$slug'
+      path: '/$slug'
+      fullPath: '/$slug'
+      preLoaderRoute: typeof SlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/busca': {
@@ -205,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TiposDeImoveisRuraisRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
     '/imovel/$slug': {
       id: '/imovel/$slug'
       path: '/imovel/$slug'
@@ -215,8 +274,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SlugRoute: SlugRoute,
+  BlogRoute: BlogRouteWithChildren,
   BuscaRoute: BuscaRoute,
   ChacarasRoute: ChacarasRoute,
   ChalesRoute: ChalesRoute,
