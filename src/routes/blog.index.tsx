@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { fetchBlogPosts } from "@/lib/blog.functions";
 import { siteConfig } from "@/lib/site-config";
 
-export const Route = createFileRoute("/blog")({
+export const Route = createFileRoute("/blog/")({
   loader: () => fetchBlogPosts({ data: { limit: 18 } }),
   head: () => ({
     meta: [

@@ -19,6 +19,7 @@ import { Route as PesqueirosRouteImport } from './routes/pesqueiros'
 import { Route as SitiosRouteImport } from './routes/sitios'
 import { Route as TemporadaRouteImport } from './routes/temporada'
 import { Route as TiposDeImoveisRuraisRouteImport } from './routes/tipos-de-imoveis-rurais'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ImovelSlugRouteImport } from './routes/imovel.$slug'
 
@@ -72,6 +73,11 @@ const TiposDeImoveisRuraisRoute = TiposDeImoveisRuraisRouteImport.update({
   path: '/tipos-de-imoveis-rurais',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BlogRoute,
+} as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -96,11 +102,11 @@ export interface FileRoutesByFullPath {
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
-  '/blog': typeof BlogRouteWithChildren
   '/busca': typeof BuscaRoute
   '/chacaras': typeof ChacarasRoute
   '/chales': typeof ChalesRoute
@@ -110,6 +116,7 @@ export interface FileRoutesByTo {
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
+  '/blog': typeof BlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +132,7 @@ export interface FileRoutesById {
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,11 +149,11 @@ export interface FileRouteTypes {
     | '/tipos-de-imoveis-rurais'
     | '/blog/$slug'
     | '/imovel/$slug'
+    | '/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$slug'
-    | '/blog'
     | '/busca'
     | '/chacaras'
     | '/chales'
@@ -155,6 +163,7 @@ export interface FileRouteTypes {
     | '/tipos-de-imoveis-rurais'
     | '/blog/$slug'
     | '/imovel/$slug'
+    | '/blog'
   id:
     | '__root__'
     | '/'
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/tipos-de-imoveis-rurais'
     | '/blog/$slug'
     | '/imovel/$slug'
+    | '/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -257,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TiposDeImoveisRuraisRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/': {
+      id: '/blog/'
+      path: '/'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof BlogRoute
+    }
     '/blog/$slug': {
       id: '/blog/$slug'
       path: '/$slug'
@@ -276,10 +293,12 @@ declare module '@tanstack/react-router' {
 
 interface BlogRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
+  BlogIndexRoute: typeof BlogIndexRoute
 }
 
 const BlogRouteChildren: BlogRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
+  BlogIndexRoute: BlogIndexRoute,
 }
 
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
