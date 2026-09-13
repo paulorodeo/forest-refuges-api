@@ -1,5 +1,8 @@
 # Casa na Floresta — Roadmap
 
+## Rebaseline 13/09/2026
+- [ ] Auditar, sem implementar, URLs editoriais, mocks/hardcodes, referências a vídeos removidos, mídia e conflitos de rotas; apresentar diagnóstico e plano para aprovação
+
 ## Fase 1
 - [x] Auditoria da API pública do WordPress (tipos, situações, regiões, campos, Yoast)
 - [x] Design system (verde, terracota, areia, títulos serifados)
