@@ -1,61 +1,70 @@
-# WordPress www2 + Blog / News
+# Rebaseline editorial e de rotas — 13/09/2026
 
-## Diagnóstico confirmado
+## Diagnóstico atual
 
-- A origem ativa ainda é `portal.casanafloresta.com.br`, centralizada em `src/lib/site-config.ts`; não há referência ativa a `app.casanafloresta.com.br`.
-- A nova REST API respondeu em `https://www2.casanafloresta.com.br/wp-json/wp/v2/posts`: há **1.220 posts**. A consulta de 1 post levou cerca de **8,45 s** e a de 3 posts com `_embed` cerca de **3,54 s**; a raiz `/wp-json/` excedeu 25 s em uma tentativa.
-- As listagens de imóveis já retornam um estado seguro quando o WordPress falha. O fetch compartilhado tem cache fresh de 5 min, stale de 24 h, deduplicação, timeout de 8 s e logs; detalhes de imóvel ainda podem propagar falha e serão protegidos.
-- Não existe implementação ativa de Blog. O padrão de metadata dinâmica e canonical já existe na página individual de imóvel.
-- A home já entrega o `<img>` principal no HTML renderizado, mas ele não declara `fetchpriority="high"`, `loading="eager"`, `srcset` ou `sizes`, e não há preload por rota. O JPEG atual tem cerca de 198 KB.
-- As fontes Fraunces e DM Sans são carregadas por stylesheet externo no documento global, mantendo Google Fonts na cadeia crítica.
+### A. Onde o código assume `/blog/:slug`
+- `src/lib/wp.server.ts`: `toBlogPost()` define `canonicalUrl` como `https://www.casanafloresta.com.br/blog/{slug}`.
+- `src/components/BlogPostCard.tsx`: os cards apontam para `/blog/$slug`.
+- `src/routes/blog.$slug.tsx`: a página individual existe em `/blog/$slug`, usa esse canonical e o inclui no `BlogPosting`.
+- `src/routes/$slug.tsx`: a URL histórica na raiz consulta o post e faz redirect 301 para `/blog/$slug`.
+- `src/routeTree.gen.ts`: confirma as duas rotas geradas; é arquivo automático e não deve ser editado.
 
-## Implementação
+### B. Mocks ou hardcodes de posts
+- Não há posts, autores, títulos ou listas editoriais fictícias gravados no frontend.
+- A home e o hub consultam posts reais pelo `WordPressBlogAdapter`.
+- `PayloadBlogAdapter` é apenas um adapter vazio de preparação; não injeta conteúdo.
+- O fallback editorial é somente uma imagem visual local, não um post substituto.
 
-1. **Configuração e resiliência**
-   - Atualizar a configuração central para `WORDPRESS_ORIGIN=https://www2.casanafloresta.com.br`, preservando `PUBLIC_SITE_URL=https://www.casanafloresta.com.br` e o espaço para Payload.
-   - Remover referências ativas a `portal.` e normalizar somente permalinks públicos retornados pelo WordPress. Preservar origens reais de `/wp-content/uploads/`, imagens, REST, endpoints técnicos, Object Storage, CDN e arquivos estáticos.
-   - Consolidar o cliente REST resiliente para imóveis e blog: fresh/stale cache, revalidação em segundo plano, deduplicação, timeout, fallback stale após falha e logs de duração/status/cache.
-   - Garantir respostas degradadas tipadas sem levar indisponibilidade do WordPress ao erro global: listas sem stale mostram estado seguro; detalhe sem stale retorna uma indisponibilidade controlada e apropriada, nunca um 200 enganoso ou 500 acidental.
+### C. Referências aos posts de vídeo removidos
+- Ainda há lógica legada em `src/lib/wp.server.ts`: `hasYouTubeEmbed()` e `isAutomaticVideoImport()`.
+- Ela reconhece categoria numérica `5`, URLs/embeds do YouTube, tamanho do texto e quantidade de títulos para omitir antigas importações.
+- Não há conteúdo desses posts hardcoded nem rotina que os recrie.
+- Como os posts foram removidos do CMS, essa regra ficou obsoleta e deve sair após confirmar a resposta atual da API.
 
-2. **P0 de performance mobile**
-   - Tornar a imagem principal imediatamente prioritária no HTML inicial com `loading="eager"`, `fetchpriority="high"` e preload por rota apontando para exatamente o mesmo recurso.
-   - Gerar variantes responsivas AVIF/WebP dos fallbacks principais e usar `srcset`/`sizes`; manter imagens abaixo da dobra em lazy loading.
-   - Retirar Google Fonts da cadeia crítica por self-host apenas dos pesos usados, com `font-display: swap`, sem FOUC ou mudança da identidade visual.
-   - Auditar o cache de imagens externas em `ausente.casanafloresta.com.br`; ajustar no código apenas o que estiver sob controle do frontend e registrar qualquer correção de origem/Cloudflare que dependa do usuário.
-   - Medir novamente a home em perfil mobile e comparar LCP, FCP, Speed Index, TBT, CLS, recurso LCP, formato, tamanho e headers. Analytics permanecerá ativo e não bloqueante.
+### D. Resolução atual de imagens do WordPress
+- Imagem destacada: usa, nesta ordem, `large.source_url`, `medium_large.source_url` e `source_url`, todos fornecidos pela API.
+- Galeria de imóvel: consulta attachments pelos IDs registrados no imóvel e usa `large.source_url` ou `source_url` retornado pela API.
+- Artigos e imóveis exibem essas URLs sem trocar sua origem.
+- Na ausência de mídia válida no dado, o frontend usa fallback semântico por artigo, tipo de imóvel ou finalidade.
+- O HTML editorial vindo do WordPress é renderizado como fornecido; referências de mídia dentro dele não são remontadas.
 
-3. **Auditoria editorial antes do filtro**
-   - Auditar diretamente `wp/v2/posts`, sem usar `/noticias/` como inventário e sem misturar o CPT `/imovel/` ao Blog.
-   - Identificar a taxonomia `videos-youtube`, medir seus posts e detectar a assinatura estrutural real do importador por conteúdo, embeds/URLs/shortcodes, autor, datas e metadata exposta.
-   - Tratar `videos-youtube` apenas como sinal. O adapter só excluirá um post quando sinais estruturais suficientes indicarem importação automática; o post `7-captacao-e-nutricao-de-leads` será usado como caso de proteção contra falso positivo.
-   - Produzir os totais bruto, marcado pela taxonomia, automático, editorial legítimo dentro dela e corpus editorial estimado, sem classificação manual dos 1.220 registros.
-   - Auditar a estrutura histórica dos permalinks diretamente nos registros. Definir uma única URL pública por artigo e redirects 301 exatos quando a URL histórica não puder ser preservada; não criar duplicidade com `/blog/$slug`.
+### E. Construção manual de URLs de mídia
+- Não foi encontrada construção de URL para S3, Contabo, `wp-content/uploads` ou `ausente.casanafloresta.com.br`.
+- `site-config.ts` exclui caminhos técnicos e arquivos da normalização de permalinks.
+- `ausente.casanafloresta.com.br` não aparece no código ativo; se surgir no navegador, será consequência da resolução/redirecionamento feito pela infraestrutura WordPress.
 
-4. **Domínio editorial e adapters**
-   - Criar o modelo normalizado `BlogPost` e resultados paginados com estado de indisponibilidade.
-   - Criar `WordPressBlogAdapter`, aplicando o filtro auditado e mapeando posts reais com `_embed` para imagem, autor, categorias, tags e Yoast sem N+1.
-   - Criar o contrato `PayloadBlogAdapter` e o agregador preparado para mesclar fontes; quando ativado, Payload substituirá duplicatas por `legacyWordPressId` e depois por slug.
-   - Expor a leitura por server functions, mantendo a UI independente do JSON do WordPress.
+### F. Rotas atuais
+- Posts: hub `/blog`; detalhe `/blog/$slug`; rota raiz `/$slug` apenas redireciona posts históricos para `/blog/$slug`.
+- Páginas institucionais do WordPress: não há adapter nem rota genérica implementados.
+- Imóveis: detalhe `/imovel/$slug`; busca `/busca`.
+- Categorias fortes: `/chacaras`, `/sitios`, `/chales`, `/temporada` e `/pesqueiros`.
+- Demais tipos: `/tipos-de-imoveis-rurais`.
+- Home: `/`.
 
-5. **Imagens e componentes**
-   - Gerar uma imagem editorial própria e integrar `contentType: "article"` à resolução central de fallback.
-   - Criar `BlogPostCard` reutilizável com imagem, categoria, título, resumo limpo, autor e data, com limites visuais consistentes.
-   - Reutilizar cabeçalho, rodapé, tokens e estilos de conteúdo já existentes; adicionar somente `News → /blog` ao menu.
+### G. Mudanças necessárias para preservar `/{post-slug}/`
+1. Transformar `src/routes/$slug.tsx` em página editorial real, em vez de redirect para `/blog/$slug`.
+2. Definir canonical do artigo com base na URL pública histórica `/{slug}/` validada, sem alterar URLs de mídia.
+3. Fazer cards, breadcrumbs e dados estruturados apontarem para `/$slug`.
+4. Remover a rota pública duplicada `/blog/$slug` ou fazê-la redirecionar exatamente, via 301, para `/$slug`; não manter duas páginas indexáveis.
+5. Auditar colisões antes da mudança: rotas estáticas têm precedência, mas slugs de posts que coincidam com `blog`, `busca`, `chacaras`, `sitios`, `chales`, `temporada`, `pesqueiros`, `tipos-de-imoveis-rurais` ou `imovel` exigem decisão explícita.
+6. Diferenciar corretamente `not-found` de indisponibilidade do WordPress; posts removidos permanecem 404/410 pendentes de decisão, sem redirect inventado.
+7. Auditar separadamente páginas legadas do WordPress na raiz antes de adicionar qualquer resolução genérica de páginas.
 
-6. **Rotas e SEO**
-   - Criar `/blog` com breadcrumb, destaque, grid real, categorias disponíveis, paginação e CTA relacionado.
-   - Criar a rota individual segundo o resultado da auditoria de permalinks, com conteúdo completo, relacionados, CTA, canonical único em `www.`, metadata social, `BlogPosting` e breadcrumbs em JSON-LD.
-   - Adicionar três conteúdos recentes na home usando o mesmo card, sem redesenhar as demais seções.
+### H. Partes a manter intactas
+- WordPress `www2` como fonte de verdade e frontend público em `www`.
+- Adapter normalizado e fronteira desacoplada entre frontend e CMS.
+- Cache fresh/stale, deduplicação, timeout e estados degradados sem erro 500 acidental.
+- URLs de mídia entregues pela API e a cascata legada de mídia, sem construir URLs de storage.
+- Fallbacks visuais semânticos somente quando a mídia do CMS não estiver disponível.
+- Rotas e páginas de imóveis, busca e categorias fortes.
+- Hub editorial `/blog`.
+- Normalização seletiva que não reescreve uploads, REST, endpoints técnicos, CDN, Object Storage ou arquivos.
 
-7. **Validação**
-   - Verificar `/`, `/blog` e um artigo real em desktop e mobile.
-   - Confirmar que chamadas usam `www2.`, enquanto canonicals e links públicos usam `www.`.
-   - Simular upstream lento/indisponível e confirmar HTTP 200, estado degradado, ausência de tela branca e ausência de erro global.
-   - Medir chamadas frias e aquecidas e registrar no relatório final os endpoints, quantidade de posts e tempos observados.
-   - Reexecutar auditoria mobile da home publicada quando a nova versão estiver disponível; métricas de campo dependem de nova coleta real e não mudam imediatamente.
+## Plano proposto — aguarda aprovação
 
-## Arquivos principais
-
-- Alterar: `src/lib/site-config.ts`, `src/lib/wp.server.ts`, `src/lib/fallback-images.ts`, `src/components/SiteHeader.tsx`, `src/routes/index.tsx`, `roadmap.md`.
-- Criar: modelo/adapters/funções de blog, `BlogPostCard`, `/blog`, `/blog/$slug`, fallback editorial, fontes locais e variantes responsivas dos fallbacks necessários.
-- Não alterar: estrutura das páginas imobiliárias, filtros, identidade global ou conexão/autenticação existente.
+1. Reauditar a API atual após a remoção dos vídeos e registrar o total editorial real, sem inferir ou restaurar conteúdo apagado.
+2. Remover somente a classificação obsoleta de importações de vídeo, mantendo o adapter orientado ao conteúdo existente no CMS.
+3. Preservar artigos em `/{slug}/`, atualizar links, canonical e schema, e eliminar a duplicidade indexável de `/blog/{slug}` com redirects 301 exatos apenas para artigos existentes.
+4. Auditar colisões entre slugs editoriais, rotas fixas e futuras páginas WordPress antes de ativar a resolução na raiz.
+5. Manter imagens exatamente nas URLs resolvidas pela API e validar destacada, attachment, conteúdo incorporado e fallback semântico.
+6. Validar 200, 301, 404 e indisponibilidade controlada sem alterar imóveis, categorias, infraestrutura de mídia ou o WordPress.
