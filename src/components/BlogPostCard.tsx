@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarDays } from "lucide-react";
-import type { BlogPost } from "@/lib/blog.types";
+import type { BlogListPost } from "@/lib/blog.types";
 import { getFallbackImage } from "@/lib/fallback-images";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -9,7 +9,7 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
 });
 
-export function BlogPostCard({ post }: { post: BlogPost }) {
+export function BlogPostCard({ post }: { post: BlogListPost }) {
   const date = new Date(post.publishedAt);
   const formattedDate = Number.isNaN(date.getTime()) ? "" : dateFormatter.format(date);
   return (

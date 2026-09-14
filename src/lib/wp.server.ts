@@ -5,7 +5,7 @@
  */
 
 import { siteConfig, toPublicUrl } from "./site-config";
-import type { BlogListResult, BlogPost, BlogPostResult } from "./blog.types";
+import type { BlogListPost, BlogListResult, BlogPost, BlogPostResult } from "./blog.types";
 
 const WP_BASE = `${siteConfig.wordpressOrigin}/wp-json/wp/v2`;
 const FRESH_TTL_MS = 5 * 60 * 1000;
@@ -118,7 +118,7 @@ export function stripHtml(html: string): string {
 
 export async function getTerms(taxonomy: string, perPage = 100): Promise<WpTerm[]> {
   const { json } = await wpFetch(
-    `/${taxonomy}?per_page=${perPage}&orderby=count&order=desc&hide_empty=true`,
+    `/${taxonomy}?per_page=${perPage}&orderby=count&order=desc&hide_empty=true&_fields=id,name,slug,count`,
   );
   return (json as any[]).map((t) => ({
     id: t.id,
@@ -131,9 +131,23 @@ export async function getTerms(taxonomy: string, perPage = 100): Promise<WpTerm[
 async function getTermIds(taxonomy: string, slugs: string[]): Promise<number[]> {
   if (!slugs.length) return [];
   const { json } = await wpFetch(
-    `/${taxonomy}?per_page=100&slug=${slugs.map(encodeURIComponent).join(",")}`,
+    `/${taxonomy}?per_page=${Math.min(100, slugs.length)}&slug=${slugs.map(encodeURIComponent).join(",")}&_fields=id`,
   );
   return (json as any[]).map((t) => t.id);
+}
+
+async function getTermsByIds(taxonomy: string, ids: number[]): Promise<WpTerm[]> {
+  const uniqueIds = [...new Set(ids)].filter((id) => Number.isFinite(id) && id > 0);
+  if (!uniqueIds.length) return [];
+  const { json } = await wpFetch(
+    `/${taxonomy}?include=${uniqueIds.join(",")}&per_page=${uniqueIds.length}&_fields=id,name,slug`,
+  );
+  return (json as any[]).map((t) => ({
+    id: t.id,
+    name: decodeEntities(String(t.name)),
+    slug: t.slug,
+    count: 0,
+  }));
 }
 
 export type PropertyCardData = {
@@ -198,14 +212,31 @@ function embeddedTerms(p: any, taxonomy: string): WpTerm[] {
     .map((t) => ({ id: t.id, name: decodeEntities(String(t.name)), slug: t.slug, count: 0 }));
 }
 
-function featured(p: any): { src: string | null; alt: string } {
-  const media = p?._embedded?.["wp:featuredmedia"]?.[0];
+function featuredFromMedia(media: any): { src: string | null; alt: string } {
   const src: string | null =
     media?.media_details?.sizes?.large?.source_url ??
     media?.media_details?.sizes?.medium_large?.source_url ??
     media?.source_url ??
     null;
   return { src, alt: media?.alt_text ? decodeEntities(media.alt_text) : "" };
+}
+
+function featured(p: any): { src: string | null; alt: string } {
+  return featuredFromMedia(p?._embedded?.["wp:featuredmedia"]?.[0]);
+}
+
+async function getFeaturedMediaById(ids: number[]): Promise<Map<number, any>> {
+  const uniqueIds = [...new Set(ids)].filter((id) => Number.isFinite(id) && id > 0);
+  if (!uniqueIds.length) return new Map();
+  const { json } = await wpFetch(
+    `/media?include=${uniqueIds.join(",")}&per_page=${uniqueIds.length}&_fields=id,source_url,alt_text,media_details`,
+  );
+  return new Map((json as any[]).map((media) => [Number(media.id), media]));
+}
+
+function taxonomyIds(p: any, taxonomy: string): number[] {
+  const values = Array.isArray(p?.[taxonomy]) ? p[taxonomy] : [];
+  return values.map(Number).filter((id: number) => Number.isFinite(id) && id > 0);
 }
 
 function toCard(p: any): PropertyCardData {
@@ -222,6 +253,57 @@ function toCard(p: any): PropertyCardData {
     excerpt: stripHtml(p.excerpt?.rendered ?? "").slice(0, 180),
     image: img.src,
     imageAlt: img.alt,
+    price: num(meta(p, "fave_property_price")),
+    pricePostfix: meta(p, "fave_property_price_postfix"),
+    size: num(meta(p, "fave_property_size")),
+    city: city?.name ?? null,
+    state: state?.name ?? null,
+    area: area?.name ?? null,
+    typeName: type?.name ?? null,
+    typeSlug: type?.slug ?? null,
+    statusName: status?.name ?? null,
+    statusSlug: status?.slug ?? null,
+  };
+}
+
+const PROPERTY_CARD_TAXONOMIES = [
+  "property_type",
+  "property_status",
+  "property_city",
+  "property_state",
+  "property_area",
+] as const;
+
+type PropertyCardTaxonomy = (typeof PROPERTY_CARD_TAXONOMIES)[number];
+type TermsByTaxonomy = Record<PropertyCardTaxonomy, Map<number, WpTerm>>;
+
+function listedTerm(
+  p: any,
+  taxonomy: PropertyCardTaxonomy,
+  termsByTaxonomy: TermsByTaxonomy,
+): WpTerm | null {
+  const id = taxonomyIds(p, taxonomy)[0];
+  return id ? termsByTaxonomy[taxonomy].get(id) ?? null : null;
+}
+
+function toListedPropertyCard(
+  p: any,
+  mediaById: Map<number, any>,
+  termsByTaxonomy: TermsByTaxonomy,
+): PropertyCardData {
+  const type = listedTerm(p, "property_type", termsByTaxonomy);
+  const status = listedTerm(p, "property_status", termsByTaxonomy);
+  const city = listedTerm(p, "property_city", termsByTaxonomy);
+  const state = listedTerm(p, "property_state", termsByTaxonomy);
+  const area = listedTerm(p, "property_area", termsByTaxonomy);
+  const image = featuredFromMedia(mediaById.get(Number(p.featured_media)));
+  return {
+    id: p.id,
+    slug: p.slug,
+    title: decodeEntities(p.title?.rendered ?? ""),
+    excerpt: "",
+    image: image.src,
+    imageAlt: image.alt,
     price: num(meta(p, "fave_property_price")),
     pricePostfix: meta(p, "fave_property_price_postfix"),
     size: num(meta(p, "fave_property_size")),
@@ -252,9 +334,18 @@ export async function listProperties(params: ListParams): Promise<PropertyListRe
     const qs = new URLSearchParams({
       per_page: String(perPage),
       page: String(page),
-      _embed: "1",
       orderby: "date",
       order: "desc",
+      _fields: [
+        "id",
+        "slug",
+        "title",
+        "featured_media",
+        "property_meta.fave_property_price",
+        "property_meta.fave_property_price_postfix",
+        "property_meta.fave_property_size",
+        ...PROPERTY_CARD_TAXONOMIES,
+      ].join(","),
     });
 
     const [typeIds, excludedTypeIds, statusIds, cityIds] = await Promise.all([
@@ -284,7 +375,32 @@ export async function listProperties(params: ListParams): Promise<PropertyListRe
     if (params.search) qs.set("search", params.search);
 
     const { json, total } = await wpFetch(`/properties?${qs.toString()}`);
-    return { items: (json as any[]).map(toCard), total, unavailable: false };
+    const properties = json as any[];
+    const mediaIds = properties.map((property) => Number(property.featured_media));
+    const termIdsByTaxonomy = Object.fromEntries(
+      PROPERTY_CARD_TAXONOMIES.map((taxonomy) => [
+        taxonomy,
+        properties.flatMap((property) => taxonomyIds(property, taxonomy)),
+      ]),
+    ) as Record<PropertyCardTaxonomy, number[]>;
+    const [mediaById, ...termLists] = await Promise.all([
+      getFeaturedMediaById(mediaIds),
+      ...PROPERTY_CARD_TAXONOMIES.map((taxonomy) =>
+        getTermsByIds(taxonomy, termIdsByTaxonomy[taxonomy]),
+      ),
+    ]);
+    const termsByTaxonomy = Object.fromEntries(
+      PROPERTY_CARD_TAXONOMIES.map((taxonomy, index) => [
+        taxonomy,
+        new Map((termLists[index] ?? []).map((term) => [term.id, term])),
+      ]),
+    ) as TermsByTaxonomy;
+
+    return {
+      items: properties.map((property) => toListedPropertyCard(property, mediaById, termsByTaxonomy)),
+      total,
+      unavailable: false,
+    };
   } catch (error) {
     console.error("[wp-properties] returning safe unavailable result", error);
     return { items: [], total: 0, unavailable: true };
@@ -342,21 +458,6 @@ export async function getPropertyBySlug(slug: string): Promise<PropertyDetail | 
   };
 }
 
-function hasYouTubeEmbed(html: string): boolean {
-  return /(?:youtube\.com\/(?:embed|watch)|youtu\.be\/|\[embed\][^[]*youtube|wp:embed[^>]*youtube)/i.test(
-    html,
-  );
-}
-
-function isAutomaticVideoImport(post: any): boolean {
-  const html = String(post?.content?.rendered ?? "");
-  const plain = stripHtml(html);
-  const headingCount = (html.match(/<h[2-4]\b/gi) ?? []).length;
-  const linkCount = (html.match(/(?:youtube\.com|youtu\.be)/gi) ?? []).length;
-  const inLegacyVideoCategory = Array.isArray(post?.categories) && post.categories.includes(5);
-  return inLegacyVideoCategory && hasYouTubeEmbed(html) && linkCount > 0 && plain.length < 1_500 && headingCount < 2;
-}
-
 function toBlogPost(post: any): BlogPost {
   const media = featured(post);
   const categories = embeddedTerms(post, "category").map((term) => term.name);
@@ -386,16 +487,33 @@ function toBlogPost(post: any): BlogPost {
   };
 }
 
+function toBlogListPost(post: any, mediaById: Map<number, any>): BlogListPost {
+  const media = featuredFromMedia(mediaById.get(Number(post.featured_media)));
+  return {
+    id: Number(post.id),
+    source: "wordpress",
+    slug: String(post.slug ?? ""),
+    title: decodeEntities(String(post?.title?.rendered ?? "")),
+    excerpt: stripHtml(String(post?.excerpt?.rendered ?? "")).slice(0, 240),
+    image: media.src,
+    imageAlt: media.alt,
+    publishedAt: String(post.date ?? ""),
+  };
+}
+
 export class WordPressBlogAdapter {
   async list(limit = 12): Promise<BlogListResult> {
     try {
-      const perPage = Math.min(40, Math.max(limit * 2, 12));
+      const perPage = Math.min(24, Math.max(limit, 12));
       const { json, total } = await wpFetch(
-        `/posts?per_page=${perPage}&_embed=1&orderby=date&order=desc`,
+        `/posts?per_page=${perPage}&orderby=date&order=desc&_fields=id,slug,title,excerpt,date,featured_media`,
       );
-      const posts = (json as any[])
-        .filter((post) => !isAutomaticVideoImport(post))
-        .map(toBlogPost)
+      const listedPosts = json as any[];
+      const mediaById = await getFeaturedMediaById(
+        listedPosts.map((post) => Number(post.featured_media)),
+      );
+      const posts = listedPosts
+        .map((post) => toBlogListPost(post, mediaById))
         .slice(0, limit);
       return { items: posts, rawTotal: total, unavailable: false };
     } catch (error) {
@@ -408,7 +526,7 @@ export class WordPressBlogAdapter {
     try {
       const { json } = await wpFetch(`/posts?slug=${encodeURIComponent(slug)}&_embed=1`);
       const post = (json as any[])[0];
-      if (!post || isAutomaticVideoImport(post)) return { status: "not-found" };
+      if (!post) return { status: "not-found" };
       return { status: "ok", post: toBlogPost(post) };
     } catch (error) {
       console.error("[wp-blog] returning controlled unavailable detail", error);

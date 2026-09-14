@@ -19,8 +19,13 @@ export type BlogPost = {
   canonicalUrl: string;
 };
 
+export type BlogListPost = Pick<
+  BlogPost,
+  "id" | "source" | "slug" | "title" | "excerpt" | "image" | "imageAlt" | "publishedAt"
+>;
+
 export type BlogListResult = {
-  items: BlogPost[];
+  items: BlogListPost[];
   rawTotal: number;
   unavailable: boolean;
 };

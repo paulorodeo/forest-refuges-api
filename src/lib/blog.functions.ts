@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseStatus } from "@tanstack/react-start/server";
-export type { BlogListResult, BlogPost, BlogPostResult } from "./blog.types";
+export type { BlogListPost, BlogListResult, BlogPost, BlogPostResult } from "./blog.types";
 
 export const fetchBlogPosts = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => {
