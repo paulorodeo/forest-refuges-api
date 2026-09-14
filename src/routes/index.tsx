@@ -7,8 +7,11 @@ import { fetchProperties } from "@/lib/properties.functions";
 import { fetchBlogPosts } from "@/lib/blog.functions";
 import { getFallbackImage } from "@/lib/fallback-images";
 import { BlogPostCard } from "@/components/BlogPostCard";
-import hero640 from "@/assets/hero-640.avif.asset.json";
-import hero1280 from "@/assets/hero-1280.avif.asset.json";
+
+const heroAvifSrcSet =
+  "/hero/hero-640.avif 640w, /hero/hero-1280.avif 1280w, /hero/hero-1920.avif 1920w";
+const heroWebpSrcSet =
+  "/hero/hero-640.webp 640w, /hero/hero-1280.webp 1280w, /hero/hero-1920.webp 1920w";
 
 const DESTAQUES = [
   {
@@ -80,8 +83,8 @@ export const Route = createFileRoute("/")({
       {
         rel: "preload",
         as: "image",
-        href: hero1280.url,
-        imageSrcSet: `${hero640.url} 640w, ${hero1280.url} 1200w`,
+        href: "/hero/hero-1280.avif",
+        imageSrcSet: heroAvifSrcSet,
         imageSizes: "100vw",
         fetchPriority: "high",
       },
@@ -99,17 +102,20 @@ function HomePage() {
       <SiteHeader />
 
       <section className="relative isolate overflow-hidden">
-        <img
-          src={hero1280.url}
-          srcSet={`${hero640.url} 640w, ${hero1280.url} 1200w`}
-          sizes="100vw"
-          alt="Chácara cercada de natureza"
-          width={1200}
-          height={800}
-          loading="eager"
-          fetchPriority="high"
-          className="absolute inset-0 size-full object-cover"
-        />
+        <picture>
+          <source type="image/avif" srcSet={heroAvifSrcSet} sizes="100vw" />
+          <img
+            src="/hero/hero-1280.webp"
+            srcSet={heroWebpSrcSet}
+            sizes="100vw"
+            alt="Chácara cercada de natureza"
+            width={1200}
+            height={800}
+            loading="eager"
+            fetchPriority="high"
+            className="absolute inset-0 size-full object-cover"
+          />
+        </picture>
         <div className="absolute inset-0 bg-forest/70" />
         <div className="relative mx-auto max-w-6xl px-4 py-24 text-forest-foreground sm:py-32">
           <p className="text-xs uppercase tracking-[0.22em] text-forest-foreground/70">
