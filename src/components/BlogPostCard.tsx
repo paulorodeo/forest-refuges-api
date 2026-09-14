@@ -14,7 +14,7 @@ export function BlogPostCard({ post }: { post: BlogPost }) {
   const formattedDate = Number.isNaN(date.getTime()) ? "" : dateFormatter.format(date);
   return (
     <article className="group overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-      <Link to="/blog/$slug" params={{ slug: post.slug }} className="block">
+      <Link to="/$slug" params={{ slug: post.slug }} className="block">
         <div className="aspect-[3/2] overflow-hidden bg-secondary">
           <img
             src={post.image ?? getFallbackImage({ contentType: "article" })}

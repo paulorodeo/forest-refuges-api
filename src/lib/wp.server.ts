@@ -382,7 +382,7 @@ function toBlogPost(post: any): BlogPost {
     seoDescription: post?.yoast_head_json?.description ?? null,
     historicalUrl,
     historicalPath: historicalUrl ? new URL(historicalUrl).pathname : `/${slug}/`,
-    canonicalUrl: `${siteConfig.publicSiteUrl}/blog/${encodeURIComponent(slug)}`,
+    canonicalUrl: `${siteConfig.publicSiteUrl}/${encodeURIComponent(slug)}/`,
   };
 }
 
