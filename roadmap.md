@@ -6,9 +6,9 @@
 - [ ] Fase 2: aguardar aprovação antes de restaurar artigos em `/{slug}/` e redirecionar `/blog/{slug}`
 
 ## Etapa 1 — estabilidade e marca
-- [ ] Garantir que falhas/timeout do WordPress não causem 5xx acidental ou SSR vazio nas rotas públicas principais
-- [ ] Substituir o favicon Lovable por um ativo existente da marca Casa na Floresta
-- [ ] Validar tipos e comportamento público sem alterar URLs `/blog/{slug}`
+- [x] Garantir que falhas/timeout do WordPress não causem 5xx acidental ou SSR vazio nas rotas públicas principais
+- [x] Substituir o favicon Lovable por um ativo existente da marca Casa na Floresta
+- [x] Validar tipos e comportamento público sem alterar URLs `/blog/{slug}`
 
 ## Fase 1
 - [x] Auditoria da API pública do WordPress (tipos, situações, regiões, campos, Yoast)
