@@ -212,12 +212,39 @@ function embeddedTerms(p: any, taxonomy: string): WpTerm[] {
     .map((t) => ({ id: t.id, name: decodeEntities(String(t.name)), slug: t.slug, count: 0 }));
 }
 
-function featuredFromMedia(media: any): { src: string | null; alt: string } {
-  const src: string | null =
-    media?.media_details?.sizes?.large?.source_url ??
-    media?.media_details?.sizes?.medium_large?.source_url ??
-    media?.source_url ??
-    null;
+const LEGACY_MEDIA_HOSTS = new Set([
+  "www.casanafloresta.com.br",
+  "img.casanafloresta.com.br",
+]);
+
+/**
+ * WordPress is the media origin. Prefer its original attachment URL because generated size
+ * variants can be stale after migrations; only rewrite known legacy upload hosts.
+ */
+export function normalizeMediaUrl(value: unknown): string | null {
+  if (typeof value !== "string" || !value) return null;
+  try {
+    const url = new URL(value, siteConfig.wordpressOrigin);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    const isUpload = url.pathname.startsWith("/wp-content/uploads/");
+    if (url.hostname === new URL(siteConfig.wordpressOrigin).hostname) return url.toString();
+    if (isUpload && LEGACY_MEDIA_HOSTS.has(url.hostname)) {
+      return new URL(`${url.pathname}${url.search}${url.hash}`, siteConfig.wordpressOrigin).toString();
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function featuredFromMedia(media: any): { src: string | null; alt: string } {
+  const src = [
+    media?.source_url,
+    media?.media_details?.sizes?.large?.source_url,
+    media?.media_details?.sizes?.medium_large?.source_url,
+  ]
+    .map(normalizeMediaUrl)
+    .find((url): url is string => Boolean(url)) ?? null;
   return { src, alt: media?.alt_text ? decodeEntities(media.alt_text) : "" };
 }
 
@@ -426,13 +453,10 @@ export async function getPropertyBySlug(slug: string): Promise<PropertyDetail | 
         `/media?include=${imageIds.slice(0, 20).join(",")}&per_page=20`,
       );
       gallery = (media as any[])
-        .map((m) => ({
-          src:
-            m?.media_details?.sizes?.large?.source_url ??
-            m?.source_url ??
-            "",
-          alt: m?.alt_text ? decodeEntities(m.alt_text) : card.title,
-        }))
+        .map((m) => {
+          const image = featuredFromMedia(m);
+          return { src: image.src ?? "", alt: image.alt || card.title };
+        })
         .filter((g) => g.src);
     } catch {
       gallery = [];
