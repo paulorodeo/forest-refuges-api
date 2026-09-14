@@ -25,3 +25,25 @@ export const fetchBlogPost = createServerFn({ method: "GET" })
     if (result.status === "unavailable") setResponseStatus(503);
     return result;
   });
+
+export const fetchBlogPostWithRelated = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) => {
+    const slug = (data as { slug?: unknown } | undefined)?.slug;
+    if (typeof slug !== "string" || !slug) throw new Error("slug inválido");
+    return { slug: slug.slice(0, 200) };
+  })
+  .handler(async ({ data }) => {
+    const { WordPressBlogAdapter, listRelatedPropertyCandidates } = await import("./wp.server");
+    const { getRelatedForArticle } = await import("./related.server");
+    const adapter = new WordPressBlogAdapter();
+    const result = await adapter.getBySlug(data.slug);
+    if (result.status === "unavailable") setResponseStatus(503);
+    if (result.status !== "ok") return result;
+    try {
+      const [articles, properties] = await Promise.all([adapter.listRelatedCandidates(), listRelatedPropertyCandidates()]);
+      return { ...result, related: getRelatedForArticle(result.post, articles, properties) };
+    } catch (error) {
+      console.error("[wp-related] article candidates unavailable", error);
+      return { ...result, related: { articles: [], properties: [] } };
+    }
+  });

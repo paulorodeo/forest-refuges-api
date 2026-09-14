@@ -5,6 +5,7 @@
  */
 
 import { siteConfig, toPublicUrl } from "./site-config";
+import { normalizeWordPressMediaUrl } from "./media";
 import type { BlogListPost, BlogListResult, BlogPost, BlogPostResult } from "./blog.types";
 
 const WP_BASE = `${siteConfig.wordpressOrigin}/wp-json/wp/v2`;
@@ -213,30 +214,11 @@ function embeddedTerms(p: any, taxonomy: string): WpTerm[] {
     .map((t) => ({ id: t.id, name: decodeEntities(String(t.name)), slug: t.slug, count: 0 }));
 }
 
-const LEGACY_MEDIA_HOSTS = new Set([
-  "www.casanafloresta.com.br",
-  "img.casanafloresta.com.br",
-]);
-
 /**
  * WordPress is the media origin. Prefer its original attachment URL because generated size
  * variants can be stale after migrations; only rewrite known legacy upload hosts.
  */
-export function normalizeMediaUrl(value: unknown): string | null {
-  if (typeof value !== "string" || !value) return null;
-  try {
-    const url = new URL(value, siteConfig.wordpressOrigin);
-    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-    const isUpload = url.pathname.startsWith("/wp-content/uploads/");
-    if (url.hostname === new URL(siteConfig.wordpressOrigin).hostname) return url.toString();
-    if (isUpload && LEGACY_MEDIA_HOSTS.has(url.hostname)) {
-      return new URL(`${url.pathname}${url.search}${url.hash}`, siteConfig.wordpressOrigin).toString();
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
+export const normalizeMediaUrl = normalizeWordPressMediaUrl;
 
 export function featuredFromMedia(media: any): { src: string | null; alt: string } {
   const src = [
@@ -435,6 +417,43 @@ export async function listProperties(params: ListParams): Promise<PropertyListRe
   }
 }
 
+/** Limited candidate feed for related-content scoring. It resolves media and terms in batches. */
+export async function listRelatedPropertyCandidates(limit = 24) {
+  const perPage = Math.min(24, Math.max(1, limit));
+  const { json } = await wpFetch(
+    `/properties?per_page=${perPage}&orderby=date&order=desc&_fields=${encodeURIComponent([
+      "id", "slug", "title", "excerpt", "date", "featured_media", "property_feature",
+      "property_meta.fave_property_price", "property_meta.fave_property_price_postfix",
+      "property_meta.fave_property_size", "property_meta.fave_property_bedrooms",
+      ...PROPERTY_CARD_TAXONOMIES,
+    ].join(","))}`,
+  );
+  const properties = json as any[];
+  const termIdsByTaxonomy = Object.fromEntries(
+    PROPERTY_CARD_TAXONOMIES.map((taxonomy) => [taxonomy, properties.flatMap((p) => taxonomyIds(p, taxonomy))]),
+  ) as Record<PropertyCardTaxonomy, number[]>;
+  const featureIds = properties.flatMap((property) => taxonomyIds(property, "property_feature"));
+  const [mediaById, ...termLists] = await Promise.all([
+    getFeaturedMediaById(properties.map((property) => Number(property.featured_media))),
+    ...PROPERTY_CARD_TAXONOMIES.map((taxonomy) => getTermsByIds(taxonomy, termIdsByTaxonomy[taxonomy])),
+    getTermsByIds("property_feature", featureIds),
+  ]);
+  const termsByTaxonomy = Object.fromEntries(
+    PROPERTY_CARD_TAXONOMIES.map((taxonomy, index) => [taxonomy, new Map((termLists[index] ?? []).map((term) => [term.id, term]))]),
+  ) as TermsByTaxonomy;
+  const featuresById = new Map((termLists[PROPERTY_CARD_TAXONOMIES.length] ?? []).map((term) => [term.id, term]));
+  return properties.map((property) => ({
+    ...toListedPropertyCard(property, mediaById, termsByTaxonomy),
+    publishedAt: String(property.date ?? ""),
+    contentHtml: "",
+    bedrooms: num(meta(property, "fave_property_bedrooms")),
+    features: taxonomyIds(property, "property_feature").flatMap((id) => {
+      const term = featuresById.get(id);
+      return term ? [term.name] : [];
+    }),
+  }));
+}
+
 export async function getPropertyBySlug(slug: string): Promise<PropertyDetail | null> {
   const { json } = await wpFetch(`/properties?slug=${encodeURIComponent(slug)}&_embed=1`);
   const p = (json as any[])[0];
@@ -546,6 +565,32 @@ export class WordPressBlogAdapter {
       console.error("[wp-blog] returning safe unavailable list", error);
       return { items: [], rawTotal: 0, unavailable: true };
     }
+  }
+
+  /** Limited candidate feed for related-content scoring without _embed. */
+  async listRelatedCandidates(limit = 24) {
+    const perPage = Math.min(24, Math.max(1, limit));
+    const { json } = await wpFetch(
+      `/posts?per_page=${perPage}&orderby=date&order=desc&_fields=id,slug,title,excerpt,content,date,featured_media,categories,tags`,
+    );
+    const posts = json as any[];
+    const [mediaById, categories, tags] = await Promise.all([
+      getFeaturedMediaById(posts.map((post) => Number(post.featured_media))),
+      getTermsByIds("categories", posts.flatMap((post) => taxonomyIds(post, "categories"))),
+      getTermsByIds("tags", posts.flatMap((post) => taxonomyIds(post, "tags"))),
+    ]);
+    const categoriesById = new Map(categories.map((term) => [term.id, term.name]));
+    const tagsById = new Map(tags.map((term) => [term.id, term.name]));
+    return posts.map((post) => {
+      const card = toBlogListPost(post, mediaById);
+      return {
+        ...card,
+        contentHtml: String(post.content?.rendered ?? ""),
+        categories: taxonomyIds(post, "categories").flatMap((id) => categoriesById.get(id) ?? []),
+        tags: taxonomyIds(post, "tags").flatMap((id) => tagsById.get(id) ?? []),
+        canonicalUrl: `${siteConfig.publicSiteUrl}/${encodeURIComponent(card.slug)}/`,
+      };
+    });
   }
 
   async getBySlug(slug: string): Promise<BlogPostResult> {

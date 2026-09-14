@@ -68,6 +68,32 @@ export const fetchProperty = createServerFn({ method: "GET" })
     }
   });
 
+export const fetchPropertyWithRelated = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) => {
+    const slug = (data as { slug?: unknown })?.slug;
+    if (typeof slug !== "string" || !slug) throw new Error("slug inválido");
+    return { slug: slug.slice(0, 200) };
+  })
+  .handler(async ({ data }) => {
+    const { getPropertyBySlug, listRelatedPropertyCandidates, WordPressBlogAdapter } = await import("./wp.server");
+    const { getRelatedForProperty } = await import("./related.server");
+    try {
+      const property = await getPropertyBySlug(data.slug);
+      if (!property) return { status: "not-found" as const };
+      try {
+        const [properties, articles] = await Promise.all([listRelatedPropertyCandidates(), new WordPressBlogAdapter().listRelatedCandidates()]);
+        return { status: "ok" as const, property, related: getRelatedForProperty(property, properties, articles) };
+      } catch (error) {
+        console.error("[wp-related] property candidates unavailable", error);
+        return { status: "ok" as const, property, related: { properties: [], articles: [] } };
+      }
+    } catch (error) {
+      console.error("[wp-property] returning controlled unavailable detail", error);
+      setResponseStatus(503);
+      return { status: "unavailable" as const };
+    }
+  });
+
 export const fetchTerms = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => {
     const taxonomy = (data as { taxonomy?: unknown })?.taxonomy;

@@ -208,18 +208,18 @@ function select<T>(items: readonly T[], score: (item: T) => number, minimum: num
     .slice(0, limit);
 }
 
-export function relatedArticles(current: RelatedArticle, candidates: readonly RelatedArticle[], limit = 3): RelatedResult<RelatedArticle>[] {
+export function relatedArticles<T extends RelatedArticle>(current: RelatedArticle, candidates: readonly T[], limit = 3): RelatedResult<T>[] {
   return select(candidates, (candidate) => scoreRelatedArticle(current, candidate), RELATED_WEIGHTS.article.minimum, Math.min(limit, 3), (article) => article.canonicalUrl);
 }
 
-export function relatedProperties(current: RelatedProperty, candidates: readonly RelatedProperty[], limit = 6): RelatedResult<RelatedProperty>[] {
+export function relatedProperties<T extends RelatedProperty>(current: RelatedProperty, candidates: readonly T[], limit = 6): RelatedResult<T>[] {
   return select(candidates, (candidate) => scoreRelatedProperty(current, candidate), RELATED_WEIGHTS.property.minimum, Math.min(limit, 6), (property) => property.slug);
 }
 
-export function propertiesForArticle(article: RelatedArticle, candidates: readonly RelatedProperty[], limit = 3): RelatedResult<RelatedProperty>[] {
+export function propertiesForArticle<T extends RelatedProperty>(article: RelatedArticle, candidates: readonly T[], limit = 3): RelatedResult<T>[] {
   return select(candidates, (property) => scoreArticleToProperty(article, property), RELATED_WEIGHTS.cross.minimum, Math.min(limit, 3), (property) => property.slug);
 }
 
-export function articlesForProperty(property: RelatedProperty, candidates: readonly RelatedArticle[], limit = 2): RelatedResult<RelatedArticle>[] {
+export function articlesForProperty<T extends RelatedArticle>(property: RelatedProperty, candidates: readonly T[], limit = 2): RelatedResult<T>[] {
   return select(candidates, (article) => scorePropertyToArticle(property, article), RELATED_WEIGHTS.cross.minimum, Math.min(limit, 2), (article) => article.canonicalUrl);
 }

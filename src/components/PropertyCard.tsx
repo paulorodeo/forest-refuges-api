@@ -3,6 +3,8 @@ import { MapPin, Ruler } from "lucide-react";
 import type { PropertyCardData } from "@/lib/properties.functions";
 import { getFallbackImage } from "@/lib/fallback-images";
 import { formatLocation, formatPrice, formatSize } from "@/lib/format";
+import { siteConfig } from "@/lib/site-config";
+import { whatsappUrl } from "@/lib/whatsapp";
 
 export function PropertyCard({
   property,
@@ -19,6 +21,7 @@ export function PropertyCard({
       statusSlug: property.statusSlug,
     });
   const size = formatSize(property.size);
+  const publicUrl = `${siteConfig.publicSiteUrl}/imovel/${encodeURIComponent(property.slug)}`;
 
   return (
     <article className="group overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
@@ -64,6 +67,17 @@ export function PropertyCard({
           </div>
         </div>
       </Link>
+      <div className="border-t border-border px-4 py-3">
+        <a
+          href={whatsappUrl(property.title, publicUrl)}
+          target="_blank"
+          rel="nofollow noopener noreferrer"
+          aria-label={`Falar sobre ${property.title} pelo WhatsApp`}
+          className="inline-flex min-h-11 items-center rounded-md bg-accent px-4 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+        >
+          WhatsApp
+        </a>
+      </div>
     </article>
   );
 }

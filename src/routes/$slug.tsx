@@ -2,13 +2,16 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { CalendarDays, UserRound } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { fetchBlogPost } from "@/lib/blog.functions";
+import { fetchBlogPostWithRelated } from "@/lib/blog.functions";
 import { getFallbackImage } from "@/lib/fallback-images";
 import { siteConfig } from "@/lib/site-config";
+import { BlogPostCard } from "@/components/BlogPostCard";
+import { PropertyCard } from "@/components/PropertyCard";
+import { AdSenseSlot } from "@/components/AdSenseSlot";
 
 export const Route = createFileRoute("/$slug")({
   loader: async ({ params }) => {
-    const result = await fetchBlogPost({ data: { slug: params.slug } });
+    const result = await fetchBlogPostWithRelated({ data: { slug: params.slug } });
     if (result.status === "not-found") throw notFound();
     return result;
   },
@@ -95,6 +98,7 @@ function BlogDetailPage() {
   }
 
   const post = result.post;
+  const related = result.related;
   const cover = post.image ?? getFallbackImage({ contentType: "article" });
   const date = new Date(post.publishedAt);
   const published = Number.isNaN(date.getTime())
@@ -162,6 +166,23 @@ function BlogDetailPage() {
             className="wp-content mx-auto max-w-3xl px-4 py-12 text-foreground/90"
             dangerouslySetInnerHTML={{ __html: post.contentHtml }}
           />
+          <AdSenseSlot />
+          {related.articles.length > 0 && (
+            <section className="mx-auto max-w-6xl px-4 pb-12" aria-labelledby="related-articles">
+              <h2 id="related-articles" className="text-2xl">Artigos relacionados</h2>
+              <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {related.articles.map(({ item }) => <BlogPostCard key={item.id} post={item} />)}
+              </div>
+            </section>
+          )}
+          {related.properties.length > 0 && (
+            <section className="mx-auto max-w-6xl px-4 pb-16" aria-labelledby="related-properties">
+              <h2 id="related-properties" className="text-2xl">Imóveis relacionados</h2>
+              <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {related.properties.map(({ item }) => <PropertyCard key={item.id} property={item} />)}
+              </div>
+            </section>
+          )}
         </article>
         <script
           type="application/ld+json"

@@ -1,5 +1,5 @@
-import type { BlogPost } from "./blog.types";
-import type { PropertyDetail } from "./wp.server";
+import type { BlogListPost, BlogPost } from "./blog.types";
+import type { PropertyCardData, PropertyDetail } from "./wp.server";
 import {
   articlesForProperty,
   propertiesForArticle,
@@ -9,11 +9,14 @@ import {
   type RelatedProperty,
 } from "./related";
 
-export function asRelatedArticle(post: BlogPost): RelatedArticle {
+export type RelatedBlogCandidate = BlogListPost & Pick<BlogPost, "categories" | "tags" | "contentHtml" | "canonicalUrl">;
+export type RelatedPropertyCandidate = PropertyCardData & Pick<PropertyDetail, "publishedAt" | "contentHtml" | "features" | "bedrooms">;
+
+export function asRelatedArticle<T extends RelatedArticle>(post: T): T {
   return post;
 }
 
-export function asRelatedProperty(property: PropertyDetail): RelatedProperty {
+export function asRelatedProperty<T extends RelatedProperty>(property: T): T {
   return property;
 }
 
@@ -23,24 +26,22 @@ export function asRelatedProperty(property: PropertyDetail): RelatedProperty {
  */
 export function getRelatedForArticle(
   article: BlogPost,
-  articles: readonly BlogPost[],
-  properties: readonly PropertyDetail[],
+  articles: readonly RelatedBlogCandidate[],
+  properties: readonly RelatedPropertyCandidate[],
 ) {
-  const current = asRelatedArticle(article);
   return {
-    articles: relatedArticles(current, articles.map(asRelatedArticle)),
-    properties: propertiesForArticle(current, properties.map(asRelatedProperty)),
+    articles: relatedArticles(article, articles),
+    properties: propertiesForArticle(article, properties),
   };
 }
 
 export function getRelatedForProperty(
   property: PropertyDetail,
-  properties: readonly PropertyDetail[],
-  articles: readonly BlogPost[],
+  properties: readonly RelatedPropertyCandidate[],
+  articles: readonly RelatedBlogCandidate[],
 ) {
-  const current = asRelatedProperty(property);
   return {
-    properties: relatedProperties(current, properties.map(asRelatedProperty)),
-    articles: articlesForProperty(current, articles.map(asRelatedArticle)),
+    properties: relatedProperties(property, properties),
+    articles: articlesForProperty(property, articles),
   };
 }

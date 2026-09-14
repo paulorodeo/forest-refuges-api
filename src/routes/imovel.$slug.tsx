@@ -3,12 +3,17 @@ import { BedDouble, Bath, MapPin, Ruler } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { fetchProperty } from "@/lib/properties.functions";
+import { fetchPropertyWithRelated } from "@/lib/properties.functions";
 import { getFallbackImage } from "@/lib/fallback-images";
 import { formatLocation, formatPrice, formatSize } from "@/lib/format";
+import { BlogPostCard } from "@/components/BlogPostCard";
+import { PropertyCard } from "@/components/PropertyCard";
+import { PropertyGallery } from "@/components/PropertyGallery";
+import { whatsappUrl } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/imovel/$slug")({
   loader: async ({ params }) => {
-    const result = await fetchProperty({ data: { slug: params.slug } });
+    const result = await fetchPropertyWithRelated({ data: { slug: params.slug } });
     if (result.status === "not-found") throw notFound();
     return result;
   },
@@ -88,6 +93,7 @@ function PropertyDetailPage() {
     );
   }
   const property = result.property;
+  const related = result.related;
   const cover =
     property.image ??
     property.gallery[0]?.src ??
@@ -97,7 +103,10 @@ function PropertyDetailPage() {
       statusSlug: property.statusSlug,
     });
   const size = formatSize(property.size);
-  const rest = property.gallery.filter((g) => g.src !== cover).slice(0, 8);
+  const gallery = [
+    { src: cover, alt: property.imageAlt || property.title },
+    ...property.gallery.filter((image) => image.src !== cover),
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -123,31 +132,7 @@ function PropertyDetailPage() {
           </p>
         </header>
 
-        <div className="mt-6 overflow-hidden rounded-xl bg-secondary">
-          <img
-            src={cover}
-            alt={property.imageAlt || property.title}
-            width={1600}
-            height={900}
-            className="aspect-[16/9] w-full object-cover"
-          />
-        </div>
-
-        {rest.length > 0 && (
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {rest.map((image) => (
-              <img
-                key={image.src}
-                src={image.src}
-                alt={image.alt}
-                width={600}
-                height={450}
-                loading="lazy"
-                className="aspect-[4/3] w-full rounded-lg object-cover"
-              />
-            ))}
-          </div>
-        )}
+        <PropertyGallery images={gallery} />
 
         <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_320px]">
           <div>
@@ -217,17 +202,35 @@ function PropertyDetailPage() {
               <p className="mt-4 text-xs text-muted-foreground">Referência {property.refId}</p>
             )}
             <a
-              href={property.originalUrl}
+              href={whatsappUrl(property.title, property.originalUrl)}
               className="mt-6 inline-flex w-full items-center justify-center rounded-md bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
-              rel="noopener"
+              target="_blank"
+              rel="nofollow noopener noreferrer"
+              aria-label={`Falar sobre ${property.title} pelo WhatsApp`}
             >
-              Falar com o anunciante
+              Falar pelo WhatsApp
             </a>
             <p className="mt-3 text-xs text-muted-foreground">
               Confirme área, valores e documentação diretamente com o anunciante.
             </p>
           </aside>
         </div>
+        {related.properties.length > 0 && (
+          <section className="mt-14" aria-labelledby="similar-properties">
+            <h2 id="similar-properties" className="text-2xl">Imóveis semelhantes</h2>
+            <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {related.properties.map(({ item }) => <PropertyCard key={item.id} property={item} />)}
+            </div>
+          </section>
+        )}
+        {related.articles.length > 0 && (
+          <section className="mt-14" aria-labelledby="helpful-content">
+            <h2 id="helpful-content" className="text-2xl">Conteúdos que podem ajudar</h2>
+            <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {related.articles.map(({ item }) => <BlogPostCard key={item.id} post={item} />)}
+            </div>
+          </section>
+        )}
       </main>
 
       <SiteFooter />

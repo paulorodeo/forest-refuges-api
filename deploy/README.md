@@ -45,3 +45,17 @@ sudo systemctl status casanafloresta-staging
 ```bash
 sudo journalctl -u casanafloresta-staging -f
 ```
+
+# Produção no VPS
+
+Produção usa um serviço separado e escuta somente em `127.0.0.1:3020`. Não compartilhe a porta
+ou o processo de staging.
+
+```bash
+sudo install -m 0644 deploy/casanafloresta-production.service /etc/systemd/system/casanafloresta-production.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now casanafloresta-production
+sudo systemctl restart casanafloresta-production
+sudo systemctl status casanafloresta-production
+sudo journalctl -u casanafloresta-production -f
+```
