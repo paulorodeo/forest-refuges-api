@@ -176,6 +176,7 @@ export type PropertyListResult = {
 };
 
 export type PropertyDetail = PropertyCardData & {
+  publishedAt: string;
   contentHtml: string;
   gallery: { src: string; alt: string }[];
   address: string | null;
@@ -465,6 +466,7 @@ export async function getPropertyBySlug(slug: string): Promise<PropertyDetail | 
 
   return {
     ...card,
+    publishedAt: String(p.date ?? ""),
     contentHtml: p.content?.rendered ?? "",
     gallery,
     address: meta(p, "fave_property_address"),
