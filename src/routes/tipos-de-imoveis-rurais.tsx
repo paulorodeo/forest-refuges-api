@@ -37,7 +37,12 @@ export const Route = createFileRoute("/tipos-de-imoveis-rurais")({
       fetchTerms({ data: { taxonomy: "property_type" } }),
       fetchProperties({ data: { typeSlugs: OTHER_TYPES, perPage: 12 } }),
     ]);
-    return { terms, others: others.items, othersTotal: others.total };
+    return {
+      terms,
+      others: others.items,
+      othersTotal: others.total,
+      unavailable: others.unavailable,
+    };
   },
   head: () => ({
     meta: [
@@ -60,7 +65,7 @@ export const Route = createFileRoute("/tipos-de-imoveis-rurais")({
 });
 
 function TiposPage() {
-  const { terms, others, othersTotal } = Route.useLoaderData();
+  const { terms, others, othersTotal, unavailable } = Route.useLoaderData();
   const strong = terms.filter((t) => STRONG_PAGES[t.slug]);
   const rest = terms.filter((t) => !STRONG_PAGES[t.slug]);
 
@@ -132,7 +137,11 @@ function TiposPage() {
           ))}
         </ul>
 
-        {others.length > 0 && (
+        {unavailable ? (
+          <p className="mt-10 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+            Os imóveis estão demorando para carregar. Tente novamente em alguns instantes.
+          </p>
+        ) : others.length > 0 && (
           <>
             <h3 className="mt-10 text-lg">
               {othersTotal} {othersTotal === 1 ? "imóvel" : "imóveis"} nesses tipos
