@@ -80,7 +80,15 @@ async function wpFetch(path: string): Promise<WpResponse> {
     });
     return cached.value;
   }
-  return fetchFromWordPress(path, "miss");
+  try {
+    return await fetchFromWordPress(path, cached ? "revalidate" : "miss");
+  } catch (error) {
+    if (cached) {
+      logFetch(path, startedAt, "upstream-error", "stale-if-error");
+      return cached.value;
+    }
+    throw error;
+  }
 }
 
 
