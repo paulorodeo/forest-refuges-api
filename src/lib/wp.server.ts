@@ -10,7 +10,7 @@ import type { BlogListPost, BlogListResult, BlogPost, BlogPostResult } from "./b
 const WP_BASE = `${siteConfig.wordpressOrigin}/wp-json/wp/v2`;
 const FRESH_TTL_MS = 5 * 60 * 1000;
 const STALE_TTL_MS = 24 * 60 * 60 * 1000;
-const REQUEST_TIMEOUT_MS = 8_000;
+const REQUEST_TIMEOUT_MS = 10_000;
 type WpResponse = { json: any; total: number };
 type CacheEntry = { at: number; value: WpResponse };
 const cache = new Map<string, CacheEntry>();
