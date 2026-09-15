@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { fetchTerms } from "@/lib/properties.functions";
 import { getFallbackImage, heroImage } from "@/lib/fallback-images";
+import { SeoBreadcrumbs } from "@/components/SeoBreadcrumbs";
 
 const STRONG_PAGES: Record<string, string> = {
   chacara: "/chacaras",
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/tipos-de-imoveis-rurais")({
     };
   },
   head: () => ({
+    links: [{ rel: "canonical", href: "https://www.casanafloresta.com.br/tipos-de-imoveis-rurais" }],
     meta: [
       { title: "Tipos de imóveis rurais: chácara, sítio, fazenda e mais | Casa na Floresta" },
       {
@@ -49,6 +51,7 @@ function TiposPage() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
+      <SeoBreadcrumbs items={[{ name: "Início", href: "/" }, { name: "Tipos de propriedade" }]} />
 
       <section className="relative isolate overflow-hidden">
         <img

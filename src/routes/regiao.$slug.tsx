@@ -16,6 +16,7 @@ export const Route = createFileRoute("/regiao/$slug")({
     ]);
     return { region, properties, posts };
   },
+  head: ({ loaderData }) => ({ links: loaderData ? [{ rel: "canonical", href: `https://www.casanafloresta.com.br/regiao/${loaderData.region.slug}` }] : [] }),
   component: RegionPage,
 });
 

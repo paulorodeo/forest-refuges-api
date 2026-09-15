@@ -130,6 +130,16 @@ export async function getTerms(taxonomy: string, perPage = 100): Promise<WpTerm[
   }));
 }
 
+export async function getSitemapItems(endpoint: "properties" | "posts") {
+  const first = await wpFetch(`/${endpoint}?page=1&per_page=100&_fields=slug`);
+  const items = [...(first.json as Array<{ slug?: string }>)] ;
+  for (let page = 2; page <= first.totalPages; page += 1) {
+    const next = await wpFetch(`/${endpoint}?page=${page}&per_page=100&_fields=slug`);
+    items.push(...(next.json as Array<{ slug?: string }>));
+  }
+  return items.flatMap((item) => item.slug ? [item.slug] : []);
+}
+
 async function getTermIds(taxonomy: string, slugs: string[]): Promise<number[]> {
   if (!slugs.length) return [];
   const { json } = await wpFetch(
