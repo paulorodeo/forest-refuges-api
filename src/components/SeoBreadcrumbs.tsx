@@ -1,0 +1,4 @@
+export function SeoBreadcrumbs({ items }: { items: Array<{ name: string; href?: string }> }) {
+  const schema = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: items.map((item, index) => ({ "@type": "ListItem", position: index + 1, name: item.name, ...(item.href ? { item: item.href } : {}) })) };
+  return <><nav aria-label="Breadcrumb" className="mx-auto max-w-6xl px-4 pt-6 text-sm text-muted-foreground"><ol className="flex flex-wrap gap-2">{items.map((item, index) => <li key={item.name}>{index > 0 && <span aria-hidden="true" className="mr-2">/</span>}{item.href ? <a href={item.href} className="hover:text-primary">{item.name}</a> : <span aria-current="page">{item.name}</span>}</li>)}</ol></nav><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} /></>;
+}

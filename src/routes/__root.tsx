@@ -115,6 +115,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="pt-BR">
       <head>
         <HeadContent />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "WebSite", name: "Casa na Floresta", url: "https://www.casanafloresta.com.br/", potentialAction: { "@type": "SearchAction", target: "https://www.casanafloresta.com.br/busca?q={search_term_string}", "query-input": "required name=search_term_string" } }) }} />
       </head>
       <body>
         {children}
