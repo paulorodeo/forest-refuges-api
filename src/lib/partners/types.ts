@@ -34,6 +34,8 @@ export type PartnerPropertyCandidate = PartnerSourceRecord & Pick<PartnerPropert
   editorialTitle: string;
   editorialDescription: string;
   publicPrice: "Sob Consulta";
+  regionName: string;
+  regionSlug: string;
 };
 
 export interface PartnerAdapter {
@@ -41,5 +43,5 @@ export interface PartnerAdapter {
   readonly name: string;
   discover(): Promise<string[]>;
   fetchProperty(sourceUrl: string): Promise<PartnerPropertyRaw | null>;
-  normalize(raw: PartnerPropertyRaw): PartnerPropertyCandidate | null;
+  normalize(raw: PartnerPropertyRaw, existing?: PartnerPropertyCandidate[]): PartnerPropertyCandidate | null;
 }
