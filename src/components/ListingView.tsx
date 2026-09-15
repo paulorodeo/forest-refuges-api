@@ -1,9 +1,9 @@
 import type { PropertyCardData } from "@/lib/properties.functions";
 import { PropertyCard } from "@/components/PropertyCard";
-import { SiteHeader } from "@/components/SiteHeader";
-import { SiteFooter } from "@/components/SiteFooter";
 import { getFallbackImage } from "@/lib/fallback-images";
 import { Pagination } from "@/components/Pagination";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export function ListingView({
   title,
@@ -18,6 +18,7 @@ export function ListingView({
   paginationSearch,
   unavailable = false,
   children,
+  shell = true,
 }: {
   title: string;
   intro: string;
@@ -31,6 +32,7 @@ export function ListingView({
   paginationSearch?: Record<string, string | undefined>;
   unavailable?: boolean;
   children?: React.ReactNode;
+  shell?: boolean;
 }) {
   const cover = getFallbackImage({
     contentType: "type",
@@ -38,9 +40,8 @@ export function ListingView({
     statusSlug: statusSlug ?? null,
   });
 
-  return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
+  const content = (
+    <>
 
       <section className="relative isolate overflow-hidden">
         <img
@@ -83,7 +84,7 @@ export function ListingView({
         {paginationPath && !unavailable && (paginationSearch ? <Pagination page={page} totalPages={totalPages} pathname={paginationPath} search={paginationSearch} /> : <Pagination page={page} totalPages={totalPages} pathname={paginationPath} />)}
       </main>
 
-      <SiteFooter />
-    </div>
+    </>
   );
+  return shell ? <div className="min-h-screen bg-background"><SiteHeader />{content}<SiteFooter /></div> : content;
 }

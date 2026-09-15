@@ -12,7 +12,7 @@ type ServerEntry = {
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 const PUBLIC_ORIGIN = "https://www.casanafloresta.com.br";
-const PAGE_PATHS = ["/", "/blog", "/chacaras", "/sitios", "/chales", "/temporada", "/pesqueiros", "/refugios-urbanos", "/tipos-de-imoveis-rurais", "/servicos", ...Object.keys(REGIONS).map((slug) => `/regiao/${slug}`)];
+const PAGE_PATHS = ["/", "/blog", "/chacaras", "/sitios", "/chales", "/temporada", "/pesqueiros", "/refugios-urbanos", "/tipos-de-imoveis-rurais", "/regioes", "/servicos", ...Object.keys(REGIONS).map((slug) => `/regiao/${slug}`)];
 
 function xmlEscape(value: string) { return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;"); }
 function urlset(paths: string[]) { return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${paths.map((path) => `<url><loc>${xmlEscape(`${PUBLIC_ORIGIN}${path}`)}</loc></url>`).join("")}</urlset>`; }

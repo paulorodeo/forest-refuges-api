@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { fetchTerms } from "@/lib/properties.functions";
 import { getFallbackImage, heroImage } from "@/lib/fallback-images";
 import { SeoBreadcrumbs } from "@/components/SeoBreadcrumbs";
+import { PropertySearch } from "@/components/PropertySearch";
 
 const STRONG_PAGES: Record<string, string> = {
   chacara: "/chacaras",
@@ -72,6 +73,7 @@ function TiposPage() {
       </section>
 
       <main className="mx-auto max-w-6xl px-4 py-12">
+        <div className="mb-12 rounded-xl bg-sand p-5"><h2 className="text-xl">Encontre um imóvel</h2><p className="mt-1 mb-4 text-sm text-muted-foreground">Pesquise por cidade, região ou tipo de propriedade.</p><PropertySearch /></div>
         <h2 className="text-2xl">Categorias principais</h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {strong.filter((term) => term.slug !== "pesqueiro").map((term) => (

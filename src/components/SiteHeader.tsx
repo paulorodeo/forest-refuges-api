@@ -3,12 +3,10 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 
 const nav = [
-  { to: "/chacaras", label: "Chácaras" },
-  { to: "/sitios", label: "Sítios" },
-  { to: "/chales", label: "Chalés" },
+  { to: "/", label: "Home" },
+  { to: "/tipos-de-imoveis-rurais", label: "Imóveis" },
+  { to: "/regioes", label: "Regiões" },
   { to: "/temporada", label: "Temporada" },
-  { to: "/pesqueiros", label: "Pesqueiros" },
-  { to: "/tipos-de-imoveis-rurais", label: "Todos os tipos" },
   { to: "/blog", label: "News" },
 ] as const;
 
@@ -54,12 +52,14 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            to="/busca"
+          <a
+            href="https://wa.me/556540426464"
+            target="_blank"
+            rel="noreferrer"
             className="hidden rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 md:inline-flex"
           >
-            Buscar imóveis
-          </Link>
+            Anuncie
+          </a>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -86,15 +86,7 @@ export function SiteHeader() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link
-                to="/busca"
-                onClick={() => setOpen(false)}
-                className="mt-1 block rounded-md bg-accent px-3 py-2 text-center text-sm font-medium text-accent-foreground"
-              >
-                Buscar imóveis
-              </Link>
-            </li>
+            <li><a href="https://wa.me/556540426464" target="_blank" rel="noreferrer" onClick={() => setOpen(false)} className="mt-1 block rounded-md bg-accent px-3 py-2 text-center text-sm font-medium text-accent-foreground">Anuncie</a></li>
           </ul>
         </nav>
       )}
