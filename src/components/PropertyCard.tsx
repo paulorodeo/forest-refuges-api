@@ -56,7 +56,7 @@ export function PropertyCard({
           </p>
           <div className="flex items-center justify-between gap-3 pt-1">
             <span className="font-medium text-primary">
-              {formatPrice(property.price, property.pricePostfix)}
+              {property.sourceType === "partner" ? "Sob Consulta" : formatPrice(property.price, property.pricePostfix)}
             </span>
             {size && (
               <span className="flex items-center gap-1 text-sm text-muted-foreground">
