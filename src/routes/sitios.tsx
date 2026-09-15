@@ -3,7 +3,9 @@ import { ListingView } from "@/components/ListingView";
 import { fetchProperties } from "@/lib/properties.functions";
 
 export const Route = createFileRoute("/sitios")({
-  loader: () => fetchProperties({ data: { typeSlugs: ["sitio"], perPage: 24 } }),
+  validateSearch: (search: Record<string, unknown>) => ({ page: typeof search["page"] === "number" ? Math.max(1, Math.trunc(search["page"] as number)) : 1 }),
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) => fetchProperties({ data: { typeSlugs: ["sitio"], page: deps.page, perPage: 24 } }),
   head: () => ({
     meta: [
       { title: "Sítios à venda | Casa na Floresta" },
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/sitios")({
 });
 
 function SitiosPage() {
-  const { items, total, unavailable } = Route.useLoaderData();
+  const { items, total, page, totalPages, unavailable } = Route.useLoaderData();
 
   return (
     <ListingView
@@ -35,6 +37,9 @@ function SitiosPage() {
       items={items}
       total={total}
       unavailable={unavailable}
+      page={page}
+      totalPages={totalPages}
+      paginationPath="/sitios"
     />
   );
 }

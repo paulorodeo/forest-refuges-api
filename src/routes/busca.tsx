@@ -4,8 +4,9 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PropertyCard } from "@/components/PropertyCard";
 import { fetchProperties } from "@/lib/properties.functions";
+import { Pagination } from "@/components/Pagination";
 
-type BuscaSearch = { q?: string; finalidade?: string };
+type BuscaSearch = { q?: string; finalidade?: string; page?: number };
 
 const FINALIDADES = [
   { slug: "", label: "Todas" },
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/busca")({
     if (typeof search["finalidade"] === "string" && search["finalidade"]) {
       out.finalidade = search["finalidade"].slice(0, 40);
     }
+    if (typeof search["page"] === "number" && Number.isFinite(search["page"])) out.page = Math.max(1, Math.trunc(search["page"]));
     return out;
   },
   loaderDeps: ({ search }) => search,
@@ -27,6 +29,7 @@ export const Route = createFileRoute("/busca")({
     fetchProperties({
       data: {
         perPage: 24,
+        page: deps.page,
         ...(deps.q ? { search: deps.q } : {}),
         ...(deps.finalidade ? { statusSlugs: [deps.finalidade] } : {}),
       },
@@ -52,7 +55,7 @@ export const Route = createFileRoute("/busca")({
 });
 
 function BuscaPage() {
-  const { items, total, unavailable } = Route.useLoaderData();
+  const { items, total, page, totalPages, unavailable } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/busca" });
 
@@ -72,6 +75,7 @@ function BuscaPage() {
               search: {
                 ...(typeof value === "string" && value ? { q: value } : {}),
                 ...(search.finalidade ? { finalidade: search.finalidade } : {}),
+                page: 1,
               },
             });
           }}
@@ -105,6 +109,7 @@ function BuscaPage() {
                 search={{
                   ...(search.q ? { q: search.q } : {}),
                   ...(f.slug ? { finalidade: f.slug } : {}),
+                  page: 1,
                 }}
                 className={
                   active
@@ -123,6 +128,7 @@ function BuscaPage() {
             {total} {total === 1 ? "imóvel encontrado" : "imóveis encontrados"}
           </p>
         )}
+        {!unavailable && <Pagination page={page} totalPages={totalPages} pathname="/busca" search={{ q: search.q, finalidade: search.finalidade }} />}
 
         {unavailable ? (
           <p className="mt-6 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">

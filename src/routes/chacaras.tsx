@@ -3,9 +3,11 @@ import { ListingView } from "@/components/ListingView";
 import { fetchProperties } from "@/lib/properties.functions";
 
 export const Route = createFileRoute("/chacaras")({
-  loader: () =>
+  validateSearch: (search: Record<string, unknown>) => ({ page: typeof search["page"] === "number" ? Math.max(1, Math.trunc(search["page"] as number)) : 1 }),
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) =>
     fetchProperties({
-      data: { typeSlugs: ["chacara", "condominio-fechado"], perPage: 24 },
+      data: { typeSlugs: ["chacara", "condominio-fechado"], page: deps.page, perPage: 24 },
     }),
   head: () => ({
     meta: [
@@ -28,7 +30,7 @@ export const Route = createFileRoute("/chacaras")({
 });
 
 function ChacarasPage() {
-  const { items, total, unavailable } = Route.useLoaderData();
+  const { items, total, page, totalPages, unavailable } = Route.useLoaderData();
 
   return (
     <ListingView
@@ -38,6 +40,9 @@ function ChacarasPage() {
       items={items}
       total={total}
       unavailable={unavailable}
+      page={page}
+      totalPages={totalPages}
+      paginationPath="/chacaras"
     />
   );
 }

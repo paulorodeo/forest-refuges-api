@@ -16,22 +16,22 @@ export function SiteFooter() {
           <h2 className="text-sm font-semibold uppercase tracking-wider">Imóveis</h2>
           <ul className="mt-3 space-y-2 text-sm text-forest-foreground/80">
             <li>
-              <Link to="/chacaras" className="hover:underline">
+              <Link to="/chacaras" search={{ page: 1 }} className="hover:underline">
                 Chácaras
               </Link>
             </li>
             <li>
-              <Link to="/sitios" className="hover:underline">
+              <Link to="/sitios" search={{ page: 1 }} className="hover:underline">
                 Sítios
               </Link>
             </li>
             <li>
-              <Link to="/chales" className="hover:underline">
+              <Link to="/chales" search={{ page: 1 }} className="hover:underline">
                 Chalés e cabanas
               </Link>
             </li>
             <li>
-              <Link to="/pesqueiros" className="hover:underline">
+              <Link to="/pesqueiros" search={{ page: 1 }} className="hover:underline">
                 Pesqueiros
               </Link>
             </li>
@@ -52,7 +52,7 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
-              <Link to="/temporada" className="hover:underline">
+              <Link to="/temporada" search={{ page: 1 }} className="hover:underline">
                 Temporada
               </Link>
             </li>

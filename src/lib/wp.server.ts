@@ -12,7 +12,7 @@ const WP_BASE = `${siteConfig.wordpressOrigin}/wp-json/wp/v2`;
 const FRESH_TTL_MS = 5 * 60 * 1000;
 const STALE_TTL_MS = 24 * 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 10_000;
-type WpResponse = { json: any; total: number };
+type WpResponse = { json: any; total: number; totalPages: number };
 type CacheEntry = { at: number; value: WpResponse };
 const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<WpResponse>>();
@@ -46,6 +46,7 @@ async function fetchFromWordPress(path: string, cacheState: "miss" | "revalidate
       const value = {
         json: await res.json(),
         total: Number(res.headers.get("x-wp-total") ?? "0"),
+        totalPages: Number(res.headers.get("x-wp-totalpages") ?? "0"),
       };
       cache.set(path, { at: Date.now(), value });
       if (cache.size > 200) cache.delete(cache.keys().next().value as string);
@@ -173,6 +174,8 @@ export type PropertyCardData = {
 export type PropertyListResult = {
   items: PropertyCardData[];
   total: number;
+  page: number;
+  totalPages: number;
   unavailable: boolean;
 };
 
@@ -332,6 +335,7 @@ export type ListParams = {
   excludeTypeSlugs?: string[];
   statusSlugs?: string[];
   citySlug?: string;
+  areaSlug?: string;
   search?: string;
   page?: number;
   perPage?: number;
@@ -358,33 +362,38 @@ export async function listProperties(params: ListParams): Promise<PropertyListRe
       ].join(","),
     });
 
-    const [typeIds, excludedTypeIds, statusIds, cityIds] = await Promise.all([
+    const [typeIds, excludedTypeIds, statusIds, cityIds, areaIds] = await Promise.all([
       params.typeSlugs?.length ? getTermIds("property_type", params.typeSlugs) : [],
       params.excludeTypeSlugs?.length
         ? getTermIds("property_type", params.excludeTypeSlugs)
         : [],
       params.statusSlugs?.length ? getTermIds("property_status", params.statusSlugs) : [],
       params.citySlug ? getTermIds("property_city", [params.citySlug]) : [],
+      params.areaSlug ? getTermIds("property_area", [params.areaSlug]) : [],
     ]);
 
     if (params.typeSlugs?.length) {
-      if (!typeIds.length) return { items: [], total: 0, unavailable: false };
+      if (!typeIds.length) return { items: [], total: 0, page, totalPages: 0, unavailable: false };
       qs.set("property_type", typeIds.join(","));
     }
     if (params.excludeTypeSlugs?.length && excludedTypeIds.length) {
       qs.set("property_type_exclude", excludedTypeIds.join(","));
     }
     if (params.statusSlugs?.length) {
-      if (!statusIds.length) return { items: [], total: 0, unavailable: false };
+      if (!statusIds.length) return { items: [], total: 0, page, totalPages: 0, unavailable: false };
       qs.set("property_status", statusIds.join(","));
     }
     if (params.citySlug) {
-      if (!cityIds.length) return { items: [], total: 0, unavailable: false };
+      if (!cityIds.length) return { items: [], total: 0, page, totalPages: 0, unavailable: false };
       qs.set("property_city", cityIds.join(","));
+    }
+    if (params.areaSlug) {
+      if (!areaIds.length) return { items: [], total: 0, page, totalPages: 0, unavailable: false };
+      qs.set("property_area", areaIds.join(","));
     }
     if (params.search) qs.set("search", params.search);
 
-    const { json, total } = await wpFetch(`/properties?${qs.toString()}`);
+    const { json, total, totalPages } = await wpFetch(`/properties?${qs.toString()}`);
     const properties = json as any[];
     const mediaIds = properties.map((property) => Number(property.featured_media));
     const termIdsByTaxonomy = Object.fromEntries(
@@ -409,11 +418,13 @@ export async function listProperties(params: ListParams): Promise<PropertyListRe
     return {
       items: properties.map((property) => toListedPropertyCard(property, mediaById, termsByTaxonomy)),
       total,
+      page,
+      totalPages: totalPages || Math.ceil(total / perPage),
       unavailable: false,
     };
   } catch (error) {
     console.error("[wp-properties] returning safe unavailable result", error);
-    return { items: [], total: 0, unavailable: true };
+    return { items: [], total: 0, page: Math.max(1, params.page ?? 1), totalPages: 0, unavailable: true };
   }
 }
 
@@ -547,23 +558,22 @@ function toBlogListPost(post: any, mediaById: Map<number, any>): BlogListPost {
 }
 
 export class WordPressBlogAdapter {
-  async list(limit = 12): Promise<BlogListResult> {
+  async list(page = 1, perPage = 12): Promise<BlogListResult> {
     try {
-      const perPage = Math.min(24, Math.max(limit, 12));
-      const { json, total } = await wpFetch(
-        `/posts?per_page=${perPage}&orderby=date&order=desc&_fields=id,slug,title,excerpt,date,featured_media`,
+      const safePage = Math.max(1, page);
+      const safePerPage = Math.min(24, Math.max(1, perPage));
+      const { json, total, totalPages } = await wpFetch(
+        `/posts?page=${safePage}&per_page=${safePerPage}&orderby=date&order=desc&_fields=id,slug,title,excerpt,date,featured_media`,
       );
       const listedPosts = json as any[];
       const mediaById = await getFeaturedMediaById(
         listedPosts.map((post) => Number(post.featured_media)),
       );
-      const posts = listedPosts
-        .map((post) => toBlogListPost(post, mediaById))
-        .slice(0, limit);
-      return { items: posts, rawTotal: total, unavailable: false };
+      const posts = listedPosts.map((post) => toBlogListPost(post, mediaById));
+      return { items: posts, total, totalPages: totalPages || Math.ceil(total / safePerPage), page: safePage, unavailable: false };
     } catch (error) {
       console.error("[wp-blog] returning safe unavailable list", error);
-      return { items: [], rawTotal: 0, unavailable: true };
+      return { items: [], total: 0, totalPages: 0, page: Math.max(1, page), unavailable: true };
     }
   }
 

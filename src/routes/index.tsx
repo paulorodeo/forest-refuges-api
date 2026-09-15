@@ -56,7 +56,7 @@ export const Route = createFileRoute("/")({
   loader: async () => {
     const [properties, posts] = await Promise.all([
       fetchProperties({ data: { perPage: 6 } }),
-      fetchBlogPosts({ data: { limit: 3 } }),
+      fetchBlogPosts({ data: { perPage: 3 } }),
     ]);
     return { properties, posts };
   },
@@ -235,7 +235,7 @@ function HomePage() {
           <div className="mx-auto max-w-6xl px-4">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <h2 className="text-2xl sm:text-3xl">Guias e inspiração</h2>
-              <Link to="/blog" className="text-sm font-medium text-primary hover:underline">
+              <Link to="/blog" search={{ page: 1 }} className="text-sm font-medium text-primary hover:underline">
                 Ver todos os artigos
               </Link>
             </div>
