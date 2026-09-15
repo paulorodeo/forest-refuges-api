@@ -335,6 +335,7 @@ export type ListParams = {
   excludeTypeSlugs?: string[];
   statusSlugs?: string[];
   citySlug?: string;
+  citySlugs?: string[];
   areaSlug?: string;
   search?: string;
   page?: number;
@@ -362,7 +363,7 @@ export async function listProperties(params: ListParams): Promise<PropertyListRe
       ].join(","),
     });
 
-    const [typeIds, excludedTypeIds, statusIds, cityIds, areaIds] = await Promise.all([
+    const [typeIds, excludedTypeIds, statusIds, cityIds, areaIds, citiesIds] = await Promise.all([
       params.typeSlugs?.length ? getTermIds("property_type", params.typeSlugs) : [],
       params.excludeTypeSlugs?.length
         ? getTermIds("property_type", params.excludeTypeSlugs)
@@ -370,6 +371,7 @@ export async function listProperties(params: ListParams): Promise<PropertyListRe
       params.statusSlugs?.length ? getTermIds("property_status", params.statusSlugs) : [],
       params.citySlug ? getTermIds("property_city", [params.citySlug]) : [],
       params.areaSlug ? getTermIds("property_area", [params.areaSlug]) : [],
+      params.citySlugs?.length ? getTermIds("property_city", params.citySlugs) : [],
     ]);
 
     if (params.typeSlugs?.length) {
@@ -386,6 +388,10 @@ export async function listProperties(params: ListParams): Promise<PropertyListRe
     if (params.citySlug) {
       if (!cityIds.length) return { items: [], total: 0, page, totalPages: 0, unavailable: false };
       qs.set("property_city", cityIds.join(","));
+    }
+    if (params.citySlugs?.length) {
+      if (!citiesIds.length) return { items: [], total: 0, page, totalPages: 0, unavailable: false };
+      qs.set("property_city", citiesIds.join(","));
     }
     if (params.areaSlug) {
       if (!areaIds.length) return { items: [], total: 0, page, totalPages: 0, unavailable: false };

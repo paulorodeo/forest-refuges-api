@@ -17,12 +17,14 @@ import { Route as ChacarasRouteImport } from './routes/chacaras'
 import { Route as ChalesRouteImport } from './routes/chales'
 import { Route as PesqueirosRouteImport } from './routes/pesqueiros'
 import { Route as RefugiosUrbanosRouteImport } from './routes/refugios-urbanos'
+import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as SitiosRouteImport } from './routes/sitios'
 import { Route as TemporadaRouteImport } from './routes/temporada'
 import { Route as TiposDeImoveisRuraisRouteImport } from './routes/tipos-de-imoveis-rurais'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ImovelSlugRouteImport } from './routes/imovel.$slug'
+import { Route as RegiaoSlugRouteImport } from './routes/regiao.$slug'
 import { Route as TipoDePropriedadeSlugRouteImport } from './routes/tipo-de-propriedade.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +67,11 @@ const RefugiosUrbanosRoute = RefugiosUrbanosRouteImport.update({
   path: '/refugios-urbanos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicosRoute = ServicosRouteImport.update({
+  id: '/servicos',
+  path: '/servicos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitiosRoute = SitiosRouteImport.update({
   id: '/sitios',
   path: '/sitios',
@@ -95,6 +102,11 @@ const ImovelSlugRoute = ImovelSlugRouteImport.update({
   path: '/imovel/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegiaoSlugRoute = RegiaoSlugRouteImport.update({
+  id: '/regiao/$slug',
+  path: '/regiao/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TipoDePropriedadeSlugRoute = TipoDePropriedadeSlugRouteImport.update({
   id: '/tipo-de-propriedade/$slug',
   path: '/tipo-de-propriedade/$slug',
@@ -110,11 +122,13 @@ export interface FileRoutesByFullPath {
   '/chales': typeof ChalesRoute
   '/pesqueiros': typeof PesqueirosRoute
   '/refugios-urbanos': typeof RefugiosUrbanosRoute
+  '/servicos': typeof ServicosRoute
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
+  '/regiao/$slug': typeof RegiaoSlugRoute
   '/tipo-de-propriedade/$slug': typeof TipoDePropriedadeSlugRoute
   '/blog/': typeof BlogIndexRoute
 }
@@ -126,11 +140,13 @@ export interface FileRoutesByTo {
   '/chales': typeof ChalesRoute
   '/pesqueiros': typeof PesqueirosRoute
   '/refugios-urbanos': typeof RefugiosUrbanosRoute
+  '/servicos': typeof ServicosRoute
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
+  '/regiao/$slug': typeof RegiaoSlugRoute
   '/tipo-de-propriedade/$slug': typeof TipoDePropriedadeSlugRoute
   '/blog': typeof BlogIndexRoute
 }
@@ -144,11 +160,13 @@ export interface FileRoutesById {
   '/chales': typeof ChalesRoute
   '/pesqueiros': typeof PesqueirosRoute
   '/refugios-urbanos': typeof RefugiosUrbanosRoute
+  '/servicos': typeof ServicosRoute
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
+  '/regiao/$slug': typeof RegiaoSlugRoute
   '/tipo-de-propriedade/$slug': typeof TipoDePropriedadeSlugRoute
   '/blog/': typeof BlogIndexRoute
 }
@@ -163,11 +181,13 @@ export interface FileRouteTypes {
     | '/chales'
     | '/pesqueiros'
     | '/refugios-urbanos'
+    | '/servicos'
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
     | '/blog/$slug'
     | '/imovel/$slug'
+    | '/regiao/$slug'
     | '/tipo-de-propriedade/$slug'
     | '/blog/'
   fileRoutesByTo: FileRoutesByTo
@@ -179,11 +199,13 @@ export interface FileRouteTypes {
     | '/chales'
     | '/pesqueiros'
     | '/refugios-urbanos'
+    | '/servicos'
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
     | '/blog/$slug'
     | '/imovel/$slug'
+    | '/regiao/$slug'
     | '/tipo-de-propriedade/$slug'
     | '/blog'
   id:
@@ -196,11 +218,13 @@ export interface FileRouteTypes {
     | '/chales'
     | '/pesqueiros'
     | '/refugios-urbanos'
+    | '/servicos'
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
     | '/blog/$slug'
     | '/imovel/$slug'
+    | '/regiao/$slug'
     | '/tipo-de-propriedade/$slug'
     | '/blog/'
   fileRoutesById: FileRoutesById
@@ -214,10 +238,12 @@ export interface RootRouteChildren {
   ChalesRoute: typeof ChalesRoute
   PesqueirosRoute: typeof PesqueirosRoute
   RefugiosUrbanosRoute: typeof RefugiosUrbanosRoute
+  ServicosRoute: typeof ServicosRoute
   SitiosRoute: typeof SitiosRoute
   TemporadaRoute: typeof TemporadaRoute
   TiposDeImoveisRuraisRoute: typeof TiposDeImoveisRuraisRoute
   ImovelSlugRoute: typeof ImovelSlugRoute
+  RegiaoSlugRoute: typeof RegiaoSlugRoute
   TipoDePropriedadeSlugRoute: typeof TipoDePropriedadeSlugRoute
 }
 
@@ -279,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RefugiosUrbanosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/servicos': {
+      id: '/servicos'
+      path: '/servicos'
+      fullPath: '/servicos'
+      preLoaderRoute: typeof ServicosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitios': {
       id: '/sitios'
       path: '/sitios'
@@ -321,6 +354,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImovelSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/regiao/$slug': {
+      id: '/regiao/$slug'
+      path: '/regiao/$slug'
+      fullPath: '/regiao/$slug'
+      preLoaderRoute: typeof RegiaoSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tipo-de-propriedade/$slug': {
       id: '/tipo-de-propriedade/$slug'
       path: '/tipo-de-propriedade/$slug'
@@ -352,10 +392,12 @@ const rootRouteChildren: RootRouteChildren = {
   ChalesRoute: ChalesRoute,
   PesqueirosRoute: PesqueirosRoute,
   RefugiosUrbanosRoute: RefugiosUrbanosRoute,
+  ServicosRoute: ServicosRoute,
   SitiosRoute: SitiosRoute,
   TemporadaRoute: TemporadaRoute,
   TiposDeImoveisRuraisRoute: TiposDeImoveisRuraisRoute,
   ImovelSlugRoute: ImovelSlugRoute,
+  RegiaoSlugRoute: RegiaoSlugRoute,
   TipoDePropriedadeSlugRoute: TipoDePropriedadeSlugRoute,
 }
 export const routeTree = rootRouteImport
