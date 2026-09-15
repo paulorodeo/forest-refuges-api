@@ -17,6 +17,7 @@ import { Route as ChacarasRouteImport } from './routes/chacaras'
 import { Route as ChalesRouteImport } from './routes/chales'
 import { Route as PesqueirosRouteImport } from './routes/pesqueiros'
 import { Route as RefugiosUrbanosRouteImport } from './routes/refugios-urbanos'
+import { Route as RegioesRouteImport } from './routes/regioes'
 import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as SitiosRouteImport } from './routes/sitios'
 import { Route as TemporadaRouteImport } from './routes/temporada'
@@ -65,6 +66,11 @@ const PesqueirosRoute = PesqueirosRouteImport.update({
 const RefugiosUrbanosRoute = RefugiosUrbanosRouteImport.update({
   id: '/refugios-urbanos',
   path: '/refugios-urbanos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegioesRoute = RegioesRouteImport.update({
+  id: '/regioes',
+  path: '/regioes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicosRoute = ServicosRouteImport.update({
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/chales': typeof ChalesRoute
   '/pesqueiros': typeof PesqueirosRoute
   '/refugios-urbanos': typeof RefugiosUrbanosRoute
+  '/regioes': typeof RegioesRoute
   '/servicos': typeof ServicosRoute
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/chales': typeof ChalesRoute
   '/pesqueiros': typeof PesqueirosRoute
   '/refugios-urbanos': typeof RefugiosUrbanosRoute
+  '/regioes': typeof RegioesRoute
   '/servicos': typeof ServicosRoute
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/chales': typeof ChalesRoute
   '/pesqueiros': typeof PesqueirosRoute
   '/refugios-urbanos': typeof RefugiosUrbanosRoute
+  '/regioes': typeof RegioesRoute
   '/servicos': typeof ServicosRoute
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/chales'
     | '/pesqueiros'
     | '/refugios-urbanos'
+    | '/regioes'
     | '/servicos'
     | '/sitios'
     | '/temporada'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/chales'
     | '/pesqueiros'
     | '/refugios-urbanos'
+    | '/regioes'
     | '/servicos'
     | '/sitios'
     | '/temporada'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/chales'
     | '/pesqueiros'
     | '/refugios-urbanos'
+    | '/regioes'
     | '/servicos'
     | '/sitios'
     | '/temporada'
@@ -238,6 +250,7 @@ export interface RootRouteChildren {
   ChalesRoute: typeof ChalesRoute
   PesqueirosRoute: typeof PesqueirosRoute
   RefugiosUrbanosRoute: typeof RefugiosUrbanosRoute
+  RegioesRoute: typeof RegioesRoute
   ServicosRoute: typeof ServicosRoute
   SitiosRoute: typeof SitiosRoute
   TemporadaRoute: typeof TemporadaRoute
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/refugios-urbanos'
       fullPath: '/refugios-urbanos'
       preLoaderRoute: typeof RefugiosUrbanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/regioes': {
+      id: '/regioes'
+      path: '/regioes'
+      fullPath: '/regioes'
+      preLoaderRoute: typeof RegioesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/servicos': {
@@ -392,6 +412,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChalesRoute: ChalesRoute,
   PesqueirosRoute: PesqueirosRoute,
   RefugiosUrbanosRoute: RefugiosUrbanosRoute,
+  RegioesRoute: RegioesRoute,
   ServicosRoute: ServicosRoute,
   SitiosRoute: SitiosRoute,
   TemporadaRoute: TemporadaRoute,

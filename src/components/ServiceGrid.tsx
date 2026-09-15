@@ -1,18 +1,18 @@
 export type Service = { title: string; description: string };
 
 export const SERVICES: Service[] = [
-  { title: "Atendimento Personalizado", description: "Acompanhamento conforme o objetivo de cada cliente." },
-  { title: "Análise de Perfil", description: "Organização das necessidades para orientar a busca pelo imóvel." },
-  { title: "Valorização de Investimento", description: "Apoio para avaliar possibilidades de valorização do patrimônio." },
-  { title: "Regularização Imobiliária", description: "Orientação para organizar a documentação do imóvel." },
-  { title: "Usucapião e Ações Jurídicas", description: "Encaminhamento de demandas jurídicas relacionadas ao imóvel." },
-  { title: "Georreferenciamento e Topografia", description: "Serviços técnicos para compreender limites e características da propriedade." },
-  { title: "Relatórios Interativos", description: "Informações organizadas para apoiar a análise de oportunidades." },
-  { title: "Assessoria Jurídica", description: "Suporte jurídico durante as etapas da negociação imobiliária." },
-  { title: "Negociação Transparente", description: "Intermediação com comunicação clara entre as partes." },
-  { title: "Desmembramento e Loteamento", description: "Orientação para projetos de divisão e organização de áreas." },
-  { title: "Anúncios Imobiliários Online", description: "Apresentação do imóvel nos canais digitais do portal." },
-  { title: "Avaliação Imobiliária", description: "Apoio na avaliação do imóvel para orientar decisões." },
+  { title: "Compra e Venda de Imóveis Rurais", description: "Intermediação de chácaras, sítios, casas de campo, áreas e outros imóveis." },
+  { title: "Busca Personalizada de Imóveis", description: "Pesquisa direcionada por perfil, finalidade, localização e características desejadas." },
+  { title: "Avaliação e Posicionamento de Mercado", description: "Análise para apoiar decisões de venda, compra e posicionamento comercial." },
+  { title: "Análise Documental do Imóvel", description: "Organização e verificação inicial da documentação e identificação de pontos que merecem análise especializada." },
+  { title: "Regularização Imobiliária Rural", description: "Apoio na identificação de pendências cadastrais, registrais e documentais." },
+  { title: "Georreferenciamento, Topografia e INCRA", description: "Encaminhamento e acompanhamento de serviços técnicos com profissionais habilitados." },
+  { title: "Desmembramento e Parcelamento de Áreas", description: "Orientação inicial e conexão com profissionais habilitados para divisão e organização de propriedades." },
+  { title: "Usucapião, Posse e Questões Imobiliárias", description: "Encaminhamento de situações que exigem análise jurídica especializada." },
+  { title: "Negociação e Estruturação da Venda", description: "Apoio na organização da negociação e comunicação entre as partes." },
+  { title: "Anúncios e Marketing Imobiliário", description: "Produção e divulgação digital de imóveis nos canais do Casa na Floresta." },
+  { title: "Valorização e Preparação do Imóvel para Venda", description: "Identificação de melhorias de apresentação, documentação e posicionamento." },
+  { title: "Refúgios para Lazer, Temporada e Investimento", description: "Apoio na identificação de imóveis para segunda residência, temporada, cabanas, chalés e projetos ligados à natureza." },
 ];
 
 export function ServiceGrid() {
