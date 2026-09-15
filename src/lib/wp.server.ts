@@ -179,6 +179,15 @@ export type PropertyCardData = {
   typeSlug: string | null;
   statusName: string | null;
   statusSlug: string | null;
+  sourceType?: "own" | "partner";
+  partnerId?: string | null;
+  partnerName?: string | null;
+  partnerSourceUrl?: string | null;
+  partnerPropertyId?: string | null;
+  lastSyncedAt?: string | null;
+  sourceStatus?: "published" | "candidate" | "review" | "rejected" | null;
+  contentRewriteVersion?: string | null;
+  partnerCoverMode?: "remote_first" | "fixed_partner_cover" | "generated_from_gallery" | null;
 };
 
 export type PropertyListResult = {

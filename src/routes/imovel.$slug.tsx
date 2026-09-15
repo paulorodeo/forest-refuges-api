@@ -193,7 +193,7 @@ function PropertyDetailPage() {
           <aside className="h-fit rounded-xl border border-border bg-card p-6 lg:sticky lg:top-24">
             <p className="text-sm text-muted-foreground">Valor</p>
             <p className="mt-1 text-2xl font-medium text-primary">
-              {formatPrice(property.price, property.pricePostfix)}
+              {property.sourceType === "partner" ? "Sob Consulta" : formatPrice(property.price, property.pricePostfix)}
             </p>
             {property.address && (
               <p className="mt-4 text-sm text-muted-foreground">{property.address}</p>
@@ -211,7 +211,7 @@ function PropertyDetailPage() {
               Falar pelo WhatsApp
             </a>
             <p className="mt-3 text-xs text-muted-foreground">
-              Confirme área, valores e documentação diretamente com o anunciante.
+              A equipe Casa na Floresta fará o atendimento inicial e orientará os próximos passos.
             </p>
           </aside>
         </div>
