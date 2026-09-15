@@ -16,12 +16,14 @@ import { Route as BuscaRouteImport } from './routes/busca'
 import { Route as ChacarasRouteImport } from './routes/chacaras'
 import { Route as ChalesRouteImport } from './routes/chales'
 import { Route as PesqueirosRouteImport } from './routes/pesqueiros'
+import { Route as RefugiosUrbanosRouteImport } from './routes/refugios-urbanos'
 import { Route as SitiosRouteImport } from './routes/sitios'
 import { Route as TemporadaRouteImport } from './routes/temporada'
 import { Route as TiposDeImoveisRuraisRouteImport } from './routes/tipos-de-imoveis-rurais'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ImovelSlugRouteImport } from './routes/imovel.$slug'
+import { Route as TipoDePropriedadeSlugRouteImport } from './routes/tipo-de-propriedade.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +60,11 @@ const PesqueirosRoute = PesqueirosRouteImport.update({
   path: '/pesqueiros',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RefugiosUrbanosRoute = RefugiosUrbanosRouteImport.update({
+  id: '/refugios-urbanos',
+  path: '/refugios-urbanos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitiosRoute = SitiosRouteImport.update({
   id: '/sitios',
   path: '/sitios',
@@ -88,6 +95,11 @@ const ImovelSlugRoute = ImovelSlugRouteImport.update({
   path: '/imovel/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TipoDePropriedadeSlugRoute = TipoDePropriedadeSlugRouteImport.update({
+  id: '/tipo-de-propriedade/$slug',
+  path: '/tipo-de-propriedade/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -97,11 +109,13 @@ export interface FileRoutesByFullPath {
   '/chacaras': typeof ChacarasRoute
   '/chales': typeof ChalesRoute
   '/pesqueiros': typeof PesqueirosRoute
+  '/refugios-urbanos': typeof RefugiosUrbanosRoute
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
+  '/tipo-de-propriedade/$slug': typeof TipoDePropriedadeSlugRoute
   '/blog/': typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
@@ -111,11 +125,13 @@ export interface FileRoutesByTo {
   '/chacaras': typeof ChacarasRoute
   '/chales': typeof ChalesRoute
   '/pesqueiros': typeof PesqueirosRoute
+  '/refugios-urbanos': typeof RefugiosUrbanosRoute
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
+  '/tipo-de-propriedade/$slug': typeof TipoDePropriedadeSlugRoute
   '/blog': typeof BlogIndexRoute
 }
 export interface FileRoutesById {
@@ -127,11 +143,13 @@ export interface FileRoutesById {
   '/chacaras': typeof ChacarasRoute
   '/chales': typeof ChalesRoute
   '/pesqueiros': typeof PesqueirosRoute
+  '/refugios-urbanos': typeof RefugiosUrbanosRoute
   '/sitios': typeof SitiosRoute
   '/temporada': typeof TemporadaRoute
   '/tipos-de-imoveis-rurais': typeof TiposDeImoveisRuraisRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/imovel/$slug': typeof ImovelSlugRoute
+  '/tipo-de-propriedade/$slug': typeof TipoDePropriedadeSlugRoute
   '/blog/': typeof BlogIndexRoute
 }
 export interface FileRouteTypes {
@@ -144,11 +162,13 @@ export interface FileRouteTypes {
     | '/chacaras'
     | '/chales'
     | '/pesqueiros'
+    | '/refugios-urbanos'
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
     | '/blog/$slug'
     | '/imovel/$slug'
+    | '/tipo-de-propriedade/$slug'
     | '/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -158,11 +178,13 @@ export interface FileRouteTypes {
     | '/chacaras'
     | '/chales'
     | '/pesqueiros'
+    | '/refugios-urbanos'
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
     | '/blog/$slug'
     | '/imovel/$slug'
+    | '/tipo-de-propriedade/$slug'
     | '/blog'
   id:
     | '__root__'
@@ -173,11 +195,13 @@ export interface FileRouteTypes {
     | '/chacaras'
     | '/chales'
     | '/pesqueiros'
+    | '/refugios-urbanos'
     | '/sitios'
     | '/temporada'
     | '/tipos-de-imoveis-rurais'
     | '/blog/$slug'
     | '/imovel/$slug'
+    | '/tipo-de-propriedade/$slug'
     | '/blog/'
   fileRoutesById: FileRoutesById
 }
@@ -189,10 +213,12 @@ export interface RootRouteChildren {
   ChacarasRoute: typeof ChacarasRoute
   ChalesRoute: typeof ChalesRoute
   PesqueirosRoute: typeof PesqueirosRoute
+  RefugiosUrbanosRoute: typeof RefugiosUrbanosRoute
   SitiosRoute: typeof SitiosRoute
   TemporadaRoute: typeof TemporadaRoute
   TiposDeImoveisRuraisRoute: typeof TiposDeImoveisRuraisRoute
   ImovelSlugRoute: typeof ImovelSlugRoute
+  TipoDePropriedadeSlugRoute: typeof TipoDePropriedadeSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -246,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PesqueirosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/refugios-urbanos': {
+      id: '/refugios-urbanos'
+      path: '/refugios-urbanos'
+      fullPath: '/refugios-urbanos'
+      preLoaderRoute: typeof RefugiosUrbanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitios': {
       id: '/sitios'
       path: '/sitios'
@@ -288,6 +321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImovelSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tipo-de-propriedade/$slug': {
+      id: '/tipo-de-propriedade/$slug'
+      path: '/tipo-de-propriedade/$slug'
+      fullPath: '/tipo-de-propriedade/$slug'
+      preLoaderRoute: typeof TipoDePropriedadeSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -311,10 +351,12 @@ const rootRouteChildren: RootRouteChildren = {
   ChacarasRoute: ChacarasRoute,
   ChalesRoute: ChalesRoute,
   PesqueirosRoute: PesqueirosRoute,
+  RefugiosUrbanosRoute: RefugiosUrbanosRoute,
   SitiosRoute: SitiosRoute,
   TemporadaRoute: TemporadaRoute,
   TiposDeImoveisRuraisRoute: TiposDeImoveisRuraisRoute,
   ImovelSlugRoute: ImovelSlugRoute,
+  TipoDePropriedadeSlugRoute: TipoDePropriedadeSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

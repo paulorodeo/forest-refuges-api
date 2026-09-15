@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { PropertyCard } from "@/components/PropertyCard";
-import { fetchProperties, fetchTerms } from "@/lib/properties.functions";
+import { fetchTerms } from "@/lib/properties.functions";
 import { getFallbackImage, heroImage } from "@/lib/fallback-images";
 
 const STRONG_PAGES: Record<string, string> = {
@@ -10,38 +9,16 @@ const STRONG_PAGES: Record<string, string> = {
   "condominio-fechado": "/chacaras",
   sitio: "/sitios",
   chale: "/chales",
+  "refugio-urbano": "/refugios-urbanos",
   pesqueiro: "/pesqueiros",
 };
-
-const OTHER_TYPES = [
-  "fazenda",
-  "haras",
-  "rancho",
-  "terreno",
-  "lote",
-  "loteamento",
-  "area",
-  "veraneio",
-  "refugio-urbano",
-  "galpao",
-  "comercial",
-  "camping",
-  "conteiner",
-  "lodges",
-  "host",
-];
+const PRIMARY_TYPE_ORDER = ["chacara", "sitio", "chale", "refugio-urbano", "pesqueiro"];
 
 export const Route = createFileRoute("/tipos-de-imoveis-rurais")({
   loader: async () => {
-    const [terms, others] = await Promise.all([
-      fetchTerms({ data: { taxonomy: "property_type" } }),
-      fetchProperties({ data: { typeSlugs: OTHER_TYPES, perPage: 12 } }),
-    ]);
+    const terms = await fetchTerms({ data: { taxonomy: "property_type" } });
     return {
       terms,
-      others: others.items,
-      othersTotal: others.total,
-      unavailable: others.unavailable,
     };
   },
   head: () => ({
@@ -65,9 +42,9 @@ export const Route = createFileRoute("/tipos-de-imoveis-rurais")({
 });
 
 function TiposPage() {
-  const { terms, others, othersTotal, unavailable } = Route.useLoaderData();
-  const strong = terms.filter((t) => STRONG_PAGES[t.slug]);
-  const rest = terms.filter((t) => !STRONG_PAGES[t.slug]);
+  const { terms } = Route.useLoaderData();
+  const strong = PRIMARY_TYPE_ORDER.flatMap((slug) => terms.filter((term) => term.slug === slug));
+  const rest = terms.filter((term) => !PRIMARY_TYPE_ORDER.includes(term.slug));
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,7 +71,7 @@ function TiposPage() {
       <main className="mx-auto max-w-6xl px-4 py-12">
         <h2 className="text-2xl">Categorias principais</h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {strong.map((term) => (
+          {strong.filter((term) => term.slug !== "pesqueiro").map((term) => (
             <Link
               key={term.id}
               to={STRONG_PAGES[term.slug] as "/chacaras"}
@@ -119,41 +96,33 @@ function TiposPage() {
               </div>
             </Link>
           ))}
+          <Link to="/temporada" search={{ page: 1 }} className="group overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+            <div className="aspect-[3/2] overflow-hidden bg-secondary">
+              <img src={getFallbackImage({ contentType: "type", statusSlug: "temporada" })} alt="Temporada" width={1200} height={800} loading="lazy" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            </div>
+            <div className="p-4"><h3 className="text-lg">Temporada</h3><p className="mt-1 text-sm text-muted-foreground">Casas e refúgios para temporada</p></div>
+          </Link>
+          {strong.filter((term) => term.slug === "pesqueiro").map((term) => (
+            <Link key={term.id} to={STRONG_PAGES[term.slug] as "/pesqueiros"} search={{ page: 1 }} className="group overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+              <div className="aspect-[3/2] overflow-hidden bg-secondary"><img src={getFallbackImage({ contentType: "type", propertyTypeSlug: term.slug })} alt={term.name} width={1200} height={800} loading="lazy" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" /></div>
+              <div className="p-4"><h3 className="text-lg">{term.name}</h3><p className="mt-1 text-sm text-muted-foreground">{term.count} {term.count === 1 ? "imóvel" : "imóveis"} publicados</p></div>
+            </Link>
+          ))}
         </div>
 
-        <h2 className="mt-16 text-2xl">Outros refúgios e tipos</h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Fazendas de lazer, haras, ranchos, terrenos, áreas e refúgios urbanos ainda têm poucos
-          imóveis publicados. Eles ficam reunidos aqui até formarem uma seleção própria.
-        </p>
+        <h2 className="mt-16 text-2xl">Todos os tipos de propriedade</h2>
         <ul className="mt-5 flex flex-wrap gap-2">
           {rest.map((term) => (
             <li
               key={term.id}
-              className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-foreground/80"
+              className="rounded-full border border-border bg-card text-sm text-foreground/80 hover:border-primary"
             >
-              {term.name}
-              <span className="ml-1.5 text-muted-foreground">{term.count}</span>
+              <Link to="/tipo-de-propriedade/$slug" params={{ slug: term.slug }} search={{ page: 1 }} className="inline-flex px-3 py-1.5">
+                {term.name}<span className="ml-1.5 text-muted-foreground">{term.count}</span>
+              </Link>
             </li>
           ))}
         </ul>
-
-        {unavailable ? (
-          <p className="mt-10 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
-            Os imóveis estão demorando para carregar. Tente novamente em alguns instantes.
-          </p>
-        ) : others.length > 0 && (
-          <>
-            <h3 className="mt-10 text-lg">
-              {othersTotal} {othersTotal === 1 ? "imóvel" : "imóveis"} nesses tipos
-            </h3>
-            <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {others.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
-            </div>
-          </>
-        )}
       </main>
 
       <SiteFooter />
