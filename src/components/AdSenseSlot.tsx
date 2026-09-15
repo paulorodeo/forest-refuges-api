@@ -23,11 +23,12 @@ export function AdSenseSlot() {
     if (pushed.current) return;
     pushed.current = true;
     try {
-      ensureAdSenseScript();
       const ads = ((window as Window & { adsbygoogle?: unknown[] }).adsbygoogle ??= []);
       ads.push({});
+      ensureAdSenseScript();
     } catch {
       // Ad blockers and unavailable third-party scripts must not affect the article.
+      console.warn("[adsense] não foi possível preparar o anúncio do artigo");
     }
   }, []);
 
@@ -36,7 +37,8 @@ export function AdSenseSlot() {
       <ins
         className="adsbygoogle"
         style={{ display: "block" }}
-        data-ad-format="autorelaxed"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
         data-ad-client={CLIENT}
         data-ad-slot={SLOT}
       />
