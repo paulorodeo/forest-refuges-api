@@ -18,11 +18,26 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link to="/" className="flex flex-col leading-none">
-          <span className="font-serif text-lg font-semibold text-primary">Casa na Floresta</span>
-          <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            Refúgios no campo
-          </span>
+        <Link
+          to="/"
+          className="flex shrink-0 items-center"
+          aria-label="Casa na Floresta — página inicial"
+        >
+          <picture>
+            <source
+              srcSet="https://www2.casanafloresta.com.br/wp-content/uploads/2026/09/casa-na-floresta-logo.avif"
+              type="image/avif"
+            />
+            <img
+              src="https://www2.casanafloresta.com.br/wp-content/uploads/2026/09/casa-na-floresta-logo.webp"
+              alt="Casa na Floresta"
+              width={900}
+              height={100}
+              className="h-8 w-auto sm:h-10"
+              fetchPriority="high"
+              decoding="async"
+            />
+          </picture>
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex" aria-label="Tipos de refúgio">
