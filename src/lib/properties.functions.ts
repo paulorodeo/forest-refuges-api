@@ -8,6 +8,7 @@ type ListInput = {
   excludeTypeSlugs?: string[];
   statusSlugs?: string[];
   citySlug?: string;
+  citySlugs?: string[];
   areaSlug?: string;
   search?: string;
   page?: number;
@@ -33,6 +34,8 @@ function validateList(data: unknown): ListInput {
 
   const citySlug = d["citySlug"];
   if (typeof citySlug === "string" && citySlug) out.citySlug = citySlug;
+  const citySlugs = asStringArray(d["citySlugs"]);
+  if (citySlugs) out.citySlugs = citySlugs;
   const areaSlug = d["areaSlug"];
   if (typeof areaSlug === "string" && areaSlug) out.areaSlug = areaSlug;
   const search = d["search"];
