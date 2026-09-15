@@ -4,6 +4,7 @@ import { ListingView } from "@/components/ListingView";
 import { ServiceGrid } from "@/components/ServiceGrid";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SeoBreadcrumbs } from "@/components/SeoBreadcrumbs";
 import type { RegionConfig } from "@/lib/region-data";
 import type { PropertyListResult } from "@/lib/properties.functions";
 import type { BlogListResult } from "@/lib/blog.functions";
@@ -11,7 +12,7 @@ import { whatsappUrl } from "@/lib/whatsapp";
 
 export function RegionalHub({ region, properties, posts }: { region: RegionConfig; properties: PropertyListResult; posts: BlogListResult }) {
   const whatsapp = whatsappUrl(region.name, `https://www.casanafloresta.com.br/regiao/${region.slug}`);
-  return <div className="min-h-screen bg-background"><SiteHeader /><main>
+  return <div className="min-h-screen bg-background"><SiteHeader /><SeoBreadcrumbs items={[{ name: "Início", href: "/" }, { name: "Regiões", href: "/regiao/sorocaba" }, { name: region.name }]} /><main>
     <header className="bg-forest py-16 text-forest-foreground"><div className="mx-auto max-w-6xl px-4"><p className="text-xs uppercase tracking-[0.18em] text-forest-foreground/70">Hub regional</p><h1 className="mt-3 text-4xl sm:text-5xl">Imóveis na {region.name}</h1><p className="mt-4 max-w-2xl text-forest-foreground/80">{region.intro}</p></div></header>
     <section className="mx-auto max-w-6xl px-4 py-12"><h2 className="text-2xl">Cidades desta região</h2><div className="mt-4 flex flex-wrap gap-2">{region.cities.map((city) => <span key={city} className="rounded-full border border-border bg-card px-3 py-1.5 text-sm">{city}</span>)}</div></section>
     <section className="mx-auto max-w-6xl px-4 pb-12"><ListingView title={`Propriedades na ${region.name}`} intro="Imóveis reais publicados no WordPress e filtrados pelas cidades desta região." items={properties.items} total={properties.total} page={properties.page} totalPages={properties.totalPages} paginationPath={`/regiao/${region.slug}`} unavailable={properties.unavailable} /></section>
