@@ -4,9 +4,12 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { fetchBlogPosts } from "@/lib/blog.functions";
 import { siteConfig } from "@/lib/site-config";
+import { Pagination } from "@/components/Pagination";
 
 export const Route = createFileRoute("/blog/")({
-  loader: () => fetchBlogPosts({ data: { limit: 18 } }),
+  validateSearch: (search: Record<string, unknown>) => ({ page: typeof search["page"] === "number" ? Math.max(1, Math.trunc(search["page"] as number)) : 1 }),
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) => fetchBlogPosts({ data: { page: deps.page, perPage: 18 } }),
   head: () => ({
     meta: [
       { title: "Blog Casa na Floresta | Guias, turismo e mercado" },
@@ -57,6 +60,7 @@ function BlogPage() {
           ) : (
             <p className="py-12 text-center text-muted-foreground">Nenhum artigo encontrado.</p>
           )}
+          {!result.unavailable && <Pagination page={result.page} totalPages={result.totalPages} pathname="/blog" />}
         </section>
       </main>
       <SiteFooter />

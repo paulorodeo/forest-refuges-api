@@ -19,7 +19,7 @@ export function PropertyGallery({ images }: { images: GalleryImage[] }) {
       <button
         type="button"
         onClick={() => setSelected(0)}
-        className="mt-6 block w-full overflow-hidden rounded-xl bg-secondary text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="mt-6 block w-full cursor-pointer overflow-hidden rounded-xl bg-secondary text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={`Abrir foto 1 de ${images.length}`}
       >
         <img src={firstImage.src} alt={firstImage.alt} width={1600} height={900} className="aspect-[16/9] w-full object-cover" />
@@ -31,7 +31,7 @@ export function PropertyGallery({ images }: { images: GalleryImage[] }) {
               key={image.src}
               type="button"
               onClick={() => setSelected(index + 1)}
-              className="overflow-hidden rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="cursor-pointer overflow-hidden rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label={`Abrir foto ${index + 2} de ${images.length}`}
             >
               <img src={image.src} alt={image.alt} width={600} height={450} loading="lazy" className="aspect-[4/3] w-full object-cover" />

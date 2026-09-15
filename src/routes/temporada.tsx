@@ -3,8 +3,10 @@ import { ListingView } from "@/components/ListingView";
 import { fetchProperties } from "@/lib/properties.functions";
 
 export const Route = createFileRoute("/temporada")({
-  loader: () =>
-    fetchProperties({ data: { statusSlugs: ["temporada", "airbnb"], perPage: 24 } }),
+  validateSearch: (search: Record<string, unknown>) => ({ page: typeof search["page"] === "number" ? Math.max(1, Math.trunc(search["page"] as number)) : 1 }),
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) =>
+    fetchProperties({ data: { statusSlugs: ["temporada", "airbnb"], page: deps.page, perPage: 24 } }),
   head: () => ({
     meta: [
       { title: "Casas de campo para temporada | Casa na Floresta" },
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/temporada")({
 });
 
 function TemporadaPage() {
-  const { items, total, unavailable } = Route.useLoaderData();
+  const { items, total, page, totalPages, unavailable } = Route.useLoaderData();
 
   return (
     <ListingView
@@ -36,6 +38,9 @@ function TemporadaPage() {
       items={items}
       total={total}
       unavailable={unavailable}
+      page={page}
+      totalPages={totalPages}
+      paginationPath="/temporada"
     />
   );
 }

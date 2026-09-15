@@ -64,6 +64,7 @@ function BlogNotFound() {
         <p className="mt-4 text-muted-foreground">Este conteúdo pode ter sido removido ou atualizado.</p>
         <Link
           to="/blog"
+          search={{ page: 1 }}
           className="mt-8 inline-flex rounded-md bg-accent px-6 py-3 text-sm font-medium text-accent-foreground"
         >
           Ver todos os artigos
@@ -87,6 +88,7 @@ function BlogDetailPage() {
           </p>
           <Link
             to="/blog"
+            search={{ page: 1 }}
             className="mt-8 inline-flex rounded-md bg-accent px-6 py-3 text-sm font-medium text-accent-foreground"
           >
             Voltar ao blog
@@ -133,7 +135,7 @@ function BlogDetailPage() {
             <nav className="text-sm text-muted-foreground" aria-label="Trilha de navegação">
               <Link to="/">Início</Link>
               <span className="mx-2">/</span>
-              <Link to="/blog">Blog</Link>
+              <Link to="/blog" search={{ page: 1 }}>Blog</Link>
             </nav>
             <h1 className="mt-6 text-4xl leading-tight sm:text-5xl">{post.title}</h1>
             <div className="mt-5 flex flex-wrap gap-5 text-sm text-muted-foreground">

@@ -98,6 +98,7 @@ function TiposPage() {
             <Link
               key={term.id}
               to={STRONG_PAGES[term.slug] as "/chacaras"}
+              search={{ page: 1 }}
               className="group overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="aspect-[3/2] overflow-hidden bg-secondary">

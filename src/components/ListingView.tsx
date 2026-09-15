@@ -3,6 +3,7 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { getFallbackImage } from "@/lib/fallback-images";
+import { Pagination } from "@/components/Pagination";
 
 export function ListingView({
   title,
@@ -11,6 +12,10 @@ export function ListingView({
   statusSlug,
   items,
   total,
+  page = 1,
+  totalPages = 0,
+  paginationPath,
+  paginationSearch,
   unavailable = false,
   children,
 }: {
@@ -20,6 +25,10 @@ export function ListingView({
   statusSlug?: string;
   items: PropertyCardData[];
   total: number;
+  page?: number;
+  totalPages?: number;
+  paginationPath?: string;
+  paginationSearch?: Record<string, string | undefined>;
   unavailable?: boolean;
   children?: React.ReactNode;
 }) {
@@ -71,6 +80,7 @@ export function ListingView({
             ))}
           </div>
         )}
+        {paginationPath && !unavailable && (paginationSearch ? <Pagination page={page} totalPages={totalPages} pathname={paginationPath} search={paginationSearch} /> : <Pagination page={page} totalPages={totalPages} pathname={paginationPath} />)}
       </main>
 
       <SiteFooter />

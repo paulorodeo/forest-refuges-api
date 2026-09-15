@@ -4,13 +4,14 @@ export type { BlogListPost, BlogListResult, BlogPost, BlogPostResult } from "./b
 
 export const fetchBlogPosts = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => {
-    const value = (data as { limit?: unknown } | undefined)?.limit;
-    const limit = typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : 12;
-    return { limit: Math.min(24, Math.max(1, limit)) };
+    const input = (data as { page?: unknown; perPage?: unknown } | undefined) ?? {};
+    const page = typeof input.page === "number" && Number.isFinite(input.page) ? Math.trunc(input.page) : 1;
+    const perPage = typeof input.perPage === "number" && Number.isFinite(input.perPage) ? Math.trunc(input.perPage) : 12;
+    return { page: Math.max(1, page), perPage: Math.min(24, Math.max(1, perPage)) };
   })
   .handler(async ({ data }) => {
     const { WordPressBlogAdapter } = await import("./wp.server");
-    return new WordPressBlogAdapter().list(data.limit);
+    return new WordPressBlogAdapter().list(data.page, data.perPage);
   });
 
 export const fetchBlogPost = createServerFn({ method: "GET" })

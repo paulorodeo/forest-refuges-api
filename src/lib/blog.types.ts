@@ -26,7 +26,9 @@ export type BlogListPost = Pick<
 
 export type BlogListResult = {
   items: BlogListPost[];
-  rawTotal: number;
+  total: number;
+  totalPages: number;
+  page: number;
   unavailable: boolean;
 };
 
@@ -36,13 +38,13 @@ export type BlogPostResult =
   | { status: "unavailable" };
 
 export interface BlogAdapter {
-  list(limit?: number): Promise<BlogListResult>;
+  list(page?: number, perPage?: number): Promise<BlogListResult>;
   getBySlug(slug: string): Promise<BlogPostResult>;
 }
 
 export class PayloadBlogAdapter implements BlogAdapter {
   async list(): Promise<BlogListResult> {
-    return { items: [], rawTotal: 0, unavailable: false };
+    return { items: [], total: 0, totalPages: 0, page: 1, unavailable: false };
   }
 
   async getBySlug(): Promise<BlogPostResult> {
