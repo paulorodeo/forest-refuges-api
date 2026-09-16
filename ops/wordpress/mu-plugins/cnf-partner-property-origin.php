@@ -42,3 +42,14 @@ function cnf_partner_origin_filter_dropdown() { global $typenow; if ( 'property'
 add_action( 'restrict_manage_posts', 'cnf_partner_origin_filter_dropdown' );
 function cnf_partner_origin_apply_filter( $query ) { if ( ! is_admin() || ! $query->is_main_query() || ! cnf_partner_origin_admin_capability() || 'property' !== $query->get( 'post_type' ) ) return; $origin = isset( $_GET['cnf_origin'] ) ? sanitize_key( wp_unslash( $_GET['cnf_origin'] ) ) : ''; if ( 'own' === $origin ) $query->set( 'meta_query', array( array( 'key' => '_cnf_source_type', 'compare' => 'NOT EXISTS' ) ) ); elseif ( in_array( $origin, array_keys( cnf_partner_origin_partner_names() ), true ) ) $query->set( 'meta_query', array( array( 'key' => '_cnf_partner_id', 'value' => $origin ) ) ); }
 add_action( 'pre_get_posts', 'cnf_partner_origin_apply_filter' );
+
+function cnf_partner_origin_remove_rest_fields( $response, $post, $request ) {
+	foreach ( CNF_PARTNER_META_KEYS as $meta_key ) {
+		unset( $response->data[ $meta_key ] );
+		if ( isset( $response->data['property_meta'][ $meta_key ] ) ) {
+			unset( $response->data['property_meta'][ $meta_key ] );
+		}
+	}
+	return $response;
+}
+add_filter( 'rest_prepare_property', 'cnf_partner_origin_remove_rest_fields', 100, 3 );
