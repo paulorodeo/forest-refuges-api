@@ -5,7 +5,7 @@
  */
 
 import { siteConfig, toPublicUrl } from "./site-config";
-import { normalizeWordPressMediaUrl } from "./media";
+import { normalizeEmbeddedImageUrls, normalizeWordPressMediaUrl } from "./media";
 import type { BlogListPost, BlogListResult, BlogPost, BlogPostResult } from "./blog.types";
 
 const WP_BASE = `${siteConfig.wordpressOrigin}/wp-json/wp/v2`;
@@ -522,7 +522,7 @@ export async function getPropertyBySlug(slug: string): Promise<PropertyDetail | 
   return {
     ...card,
     publishedAt: String(p.date ?? ""),
-    contentHtml: p.content?.rendered ?? "",
+    contentHtml: normalizeEmbeddedImageUrls(p.content?.rendered ?? ""),
     gallery,
     address: meta(p, "fave_property_address"),
     zip: meta(p, "fave_property_zip"),
@@ -552,7 +552,7 @@ function toBlogPost(post: any): BlogPost {
     slug,
     title: decodeEntities(String(post?.title?.rendered ?? "")),
     excerpt: stripHtml(String(post?.excerpt?.rendered ?? "")).slice(0, 240),
-    contentHtml: String(post?.content?.rendered ?? ""),
+    contentHtml: normalizeEmbeddedImageUrls(String(post?.content?.rendered ?? "")),
     image: media.src,
     imageAlt: media.alt,
     authorName: author?.name ? decodeEntities(String(author.name)) : null,
@@ -620,7 +620,7 @@ export class WordPressBlogAdapter {
       const card = toBlogListPost(post, mediaById);
       return {
         ...card,
-        contentHtml: String(post.content?.rendered ?? ""),
+        contentHtml: normalizeEmbeddedImageUrls(String(post.content?.rendered ?? "")),
         categories: taxonomyIds(post, "categories").flatMap((id) => categoriesById.get(id) ?? []),
         tags: taxonomyIds(post, "tags").flatMap((id) => tagsById.get(id) ?? []),
         canonicalUrl: `${siteConfig.publicSiteUrl}/${encodeURIComponent(card.slug)}/`,

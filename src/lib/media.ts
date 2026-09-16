@@ -11,6 +11,8 @@ const LEGACY_WORDPRESS_MEDIA_HOSTS = new Set([
  */
 export function normalizeWordPressMediaUrl(value: unknown): string | null {
   if (typeof value !== "string" || !value) return null;
+  const malformed = value.match(/(?:https?:\/\/[^\s"'<>]+)?\/wp-content\/uploads\/(https?:\/\/[^\s"'<>]+)/i);
+  if (malformed?.[1]) return malformed[1];
   try {
     const url = new URL(value, siteConfig.wordpressOrigin);
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
@@ -23,6 +25,10 @@ export function normalizeWordPressMediaUrl(value: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+export function normalizeEmbeddedImageUrls(value: string): string {
+  return value.replace(/((?:https?:\/\/[^\s"'<>]+)?\/wp-content\/uploads\/)(https?:\/\/[^\s"'<>]+)/gi, "$2");
 }
 
 /**

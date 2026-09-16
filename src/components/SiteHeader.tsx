@@ -23,14 +23,15 @@ export function SiteHeader() {
         >
           <picture>
             <source
-              srcSet="https://www2.casanafloresta.com.br/wp-content/uploads/2026/09/casa-na-floresta-logo.avif"
+              srcSet="/brand/casa-na-floresta-logo.avif"
               type="image/avif"
             />
+            <source srcSet="/brand/casa-na-floresta-logo.webp" type="image/webp" />
             <img
-              src="https://www2.casanafloresta.com.br/wp-content/uploads/2026/09/casa-na-floresta-logo.webp"
+              src="/brand/casa-na-floresta-logo.png"
               alt="Casa na Floresta"
-              width={900}
-              height={100}
+              width={215}
+              height={60}
               className="h-8 w-auto sm:h-10"
               fetchPriority="high"
               decoding="async"
