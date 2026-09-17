@@ -4,6 +4,7 @@ import { getFallbackImage } from "@/lib/fallback-images";
 import { Pagination } from "@/components/Pagination";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { ElfsightWidget } from "@/components/ElfsightWidget";
 
 export function ListingView({
   title,
@@ -86,5 +87,5 @@ export function ListingView({
 
     </>
   );
-  return shell ? <div className="min-h-screen bg-background"><SiteHeader />{content}<SiteFooter /></div> : content;
+  return shell ? <div className="min-h-screen bg-background"><SiteHeader />{content}<ElfsightWidget id={1} /><SiteFooter /></div> : <>{content}<ElfsightWidget id={1} /></>;
 }

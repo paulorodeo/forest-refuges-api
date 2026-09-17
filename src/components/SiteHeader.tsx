@@ -14,7 +14,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-[#FFFFFF] backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link
           to="/"
@@ -74,7 +74,7 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <nav className="border-t border-border bg-background px-4 py-3 md:hidden" aria-label="Menu">
+        <nav className="border-t border-border bg-[#FFFFFF] px-4 py-3 md:hidden" aria-label="Menu">
           <ul className="flex flex-col gap-1">
             {nav.map((item) => (
               <li key={item.to}>

@@ -9,7 +9,7 @@ import { formatLocation, formatPrice, formatSize } from "@/lib/format";
 import { BlogPostCard } from "@/components/BlogPostCard";
 import { PropertyCard } from "@/components/PropertyCard";
 import { PropertyGallery } from "@/components/PropertyGallery";
-import { whatsappUrl } from "@/lib/whatsapp";
+import { ElfsightWidget } from "@/components/ElfsightWidget";
 
 export const Route = createFileRoute("/imovel/$slug")({
   loader: async ({ params }) => {
@@ -201,15 +201,7 @@ function PropertyDetailPage() {
             {property.refId && (
               <p className="mt-4 text-xs text-muted-foreground">Referência {property.refId}</p>
             )}
-            <a
-              href={whatsappUrl(property.title, property.originalUrl)}
-              className="mt-6 inline-flex w-full items-center justify-center rounded-md bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
-              target="_blank"
-              rel="nofollow noopener noreferrer"
-              aria-label={`Falar sobre ${property.title} pelo WhatsApp`}
-            >
-              Falar pelo WhatsApp
-            </a>
+            <ElfsightWidget id={10} fallbackWhatsApp />
             <p className="mt-3 text-xs text-muted-foreground">
               A equipe Casa na Floresta fará o atendimento inicial e orientará os próximos passos.
             </p>

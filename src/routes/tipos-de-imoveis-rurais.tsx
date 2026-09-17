@@ -5,6 +5,7 @@ import { fetchTerms } from "@/lib/properties.functions";
 import { getFallbackImage, heroImage } from "@/lib/fallback-images";
 import { SeoBreadcrumbs } from "@/components/SeoBreadcrumbs";
 import { PropertySearch } from "@/components/PropertySearch";
+import { ElfsightWidget } from "@/components/ElfsightWidget";
 
 const STRONG_PAGES: Record<string, string> = {
   chacara: "/chacaras",
@@ -129,7 +130,7 @@ function TiposPage() {
           ))}
         </ul>
       </main>
-
+      <ElfsightWidget id={1} />
       <SiteFooter />
     </div>
   );

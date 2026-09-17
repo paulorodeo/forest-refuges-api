@@ -166,6 +166,26 @@ export function createWordPressFetchCache(options: WpFetchOptions = {}) {
 }
 
 const { wpFetch } = createWordPressFetchCache();
+const { wpFetch: wpCustomFetch } = createWordPressFetchCache({
+  baseUrl: `${siteConfig.wordpressOrigin}/wp-json`,
+  freshTtlMs: 60_000,
+});
+
+export async function getElfsightWidgetConfig(id: number) {
+  const { json } = await wpCustomFetch(`/cnf/v1/elfsight-whatsapp-widget/${id}`);
+  const value = json as Record<string, unknown>;
+  if (
+    !value || typeof value !== "object" || typeof value["id"] !== "number" ||
+    typeof value["version"] !== "string" || typeof value["scriptUrl"] !== "string" ||
+    !value["options"] || typeof value["options"] !== "object"
+  ) return null;
+  return {
+    id: value["id"],
+    version: value["version"],
+    optionsJson: JSON.stringify(value["options"]),
+    scriptUrl: value["scriptUrl"],
+  };
+}
 
 
 export type WpTerm = { id: number; name: string; slug: string; count: number };

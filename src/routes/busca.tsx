@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PropertyCard } from "@/components/PropertyCard";
 import { fetchProperties } from "@/lib/properties.functions";
 import { Pagination } from "@/components/Pagination";
+import { ElfsightWidget } from "@/components/ElfsightWidget";
 
 type BuscaSearch = { q?: string; finalidade?: string; page?: number };
 
@@ -147,7 +148,7 @@ function BuscaPage() {
           </div>
         )}
       </main>
-
+      <ElfsightWidget id={1} />
       <SiteFooter />
     </div>
   );
