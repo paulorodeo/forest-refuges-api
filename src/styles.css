@@ -3,6 +3,9 @@
 /* The local Elfsight embed defaults to a 400px panel. Keep only Widget 10's
    runtime nodes within its responsive property-detail column on small screens. */
 @media (max-width: 639px) {
+  [data-cnf-elfsight-widget="10"],
+  [data-cnf-elfsight-widget="10"] > div,
+  [data-cnf-elfsight-widget="10"] .elfsight-widget-whatsapp-chat,
   [data-cnf-elfsight-widget="10"] [id^="portal-"],
   [data-cnf-elfsight-widget="10"] [id^="portal-"] > *,
   [data-cnf-elfsight-widget="10"] [id^="eapps-whatsapp-chat-"] {
