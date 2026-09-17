@@ -116,6 +116,7 @@ export function ElfsightWidget({ id, fallbackWhatsApp = false }: { id: ElfsightW
           <div
             id={portalId}
             className={`eapp-whatsapp-chat-root-layout-component eapps-whatsapp-chat-${widgetId}-custom-css-hook`}
+            style={{ width: "100%", maxWidth: "100%", minWidth: 0 }}
             data-cnf-elfsight-embed-portal
           />
         )}
