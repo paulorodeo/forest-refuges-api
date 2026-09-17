@@ -273,6 +273,7 @@ export type PropertyCardData = {
   typeSlug: string | null;
   statusName: string | null;
   statusSlug: string | null;
+  isSeasonal?: boolean;
   sourceType?: "own" | "partner";
   partnerId?: string | null;
   partnerName?: string | null;
@@ -329,6 +330,9 @@ function embeddedTerms(p: any, taxonomy: string): WpTerm[] {
     .filter((t) => t.taxonomy === taxonomy)
     .map((t) => ({ id: t.id, name: decodeEntities(String(t.name)), slug: t.slug, count: 0 }));
 }
+const SEASONAL_STATUS_SLUGS = new Set(["temporada", "airbnb"]);
+export function isSeasonalPropertyStatus(statusSlug: string | null | undefined) { return Boolean(statusSlug && SEASONAL_STATUS_SLUGS.has(statusSlug)); }
+function publicPrice(statusSlug: string | null | undefined, rawPrice: number | null, rawPostfix: string | null) { const isSeasonal = isSeasonalPropertyStatus(statusSlug); return { isSeasonal, price: isSeasonal ? null : rawPrice, pricePostfix: isSeasonal ? null : rawPostfix }; }
 
 /**
  * WordPress is the media origin. Prefer its original attachment URL because generated size
@@ -372,6 +376,7 @@ function toCard(p: any): PropertyCardData {
   const state = embeddedTerms(p, "property_state")[0] ?? null;
   const area = embeddedTerms(p, "property_area")[0] ?? null;
   const img = featured(p);
+  const price = publicPrice(status?.slug, num(meta(p, "fave_property_price")), meta(p, "fave_property_price_postfix"));
   return {
     id: p.id,
     slug: p.slug,
@@ -379,8 +384,7 @@ function toCard(p: any): PropertyCardData {
     excerpt: stripHtml(p.excerpt?.rendered ?? "").slice(0, 180),
     image: img.src,
     imageAlt: img.alt,
-    price: num(meta(p, "fave_property_price")),
-    pricePostfix: meta(p, "fave_property_price_postfix"),
+    ...price,
     size: num(meta(p, "fave_property_size")),
     city: city?.name ?? null,
     state: state?.name ?? null,
@@ -423,6 +427,7 @@ function toListedPropertyCard(
   const state = listedTerm(p, "property_state", termsByTaxonomy);
   const area = listedTerm(p, "property_area", termsByTaxonomy);
   const image = featuredFromMedia(mediaById.get(Number(p.featured_media)));
+  const price = publicPrice(status?.slug, num(meta(p, "fave_property_price")), meta(p, "fave_property_price_postfix"));
   return {
     id: p.id,
     slug: p.slug,
@@ -430,8 +435,7 @@ function toListedPropertyCard(
     excerpt: "",
     image: image.src,
     imageAlt: image.alt,
-    price: num(meta(p, "fave_property_price")),
-    pricePostfix: meta(p, "fave_property_price_postfix"),
+    ...price,
     size: num(meta(p, "fave_property_size")),
     city: city?.name ?? null,
     state: state?.name ?? null,

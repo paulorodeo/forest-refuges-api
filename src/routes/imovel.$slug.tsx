@@ -193,7 +193,7 @@ function PropertyDetailPage() {
           <aside className="h-fit rounded-xl border border-border bg-card p-6 lg:sticky lg:top-24">
             <p className="text-sm text-muted-foreground">Valor</p>
             <p className="mt-1 text-2xl font-medium text-primary">
-              {property.sourceType === "partner" ? "Sob Consulta" : formatPrice(property.price, property.pricePostfix)}
+              {property.sourceType === "partner" || property.isSeasonal ? "Sob Consulta" : formatPrice(property.price, property.pricePostfix)}
             </p>
             {property.address && (
               <p className="mt-4 text-sm text-muted-foreground">{property.address}</p>
