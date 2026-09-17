@@ -91,7 +91,15 @@ export function ElfsightWidget({ id, fallbackWhatsApp = false }: { id: ElfsightW
         if (typeof init !== "function") throw new Error("Elfsight runtime unavailable");
         init(element, runtimeOptions);
         window.setTimeout(() => {
-          if (!cancelled && portalId && document.getElementById(portalId)) {
+          const portal = portalId ? document.getElementById(portalId) : null;
+          if (id === 10 && portal) {
+            [portal, ...portal.querySelectorAll<HTMLElement>('[id^="eapps-whatsapp-chat-"]')].forEach((node) => {
+              node.style.setProperty("width", "100%", "important");
+              node.style.setProperty("max-width", "100%", "important");
+              node.style.setProperty("min-width", "0", "important");
+            });
+          }
+          if (!cancelled && portal) {
             readyRef.current = true;
             setReady(true);
           }
