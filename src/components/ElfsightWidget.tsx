@@ -1,5 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import { fetchElfsightWidget, type ElfsightWidgetId } from "@/lib/elfsight.functions";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  fetchElfsightWidget,
+  type ElfsightWidgetConfig,
+  type ElfsightWidgetId,
+} from "@/lib/elfsight.functions";
 
 const SCRIPT_ATTRIBUTE = "data-cnf-elfsight-whatsapp-chat";
 let scriptPromise: Promise<void> | undefined;
@@ -35,35 +39,52 @@ function loadScript(src: string) {
 
 export function ElfsightWidget({ id, fallbackWhatsApp = false }: { id: ElfsightWidgetId; fallbackWhatsApp?: boolean }) {
   const host = useRef<HTMLDivElement>(null);
+  const widgetElement = useRef<HTMLDivElement>(null);
+  const [config, setConfig] = useState<ElfsightWidgetConfig | null>(null);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const readyRef = useRef(false);
 
   useEffect(() => {
+    setConfig(null);
+    setReady(false);
+    setFailed(false);
+    readyRef.current = false;
+    void fetchElfsightWidget({ data: { id } })
+      .then((nextConfig) => {
+        if (!nextConfig) throw new Error("Elfsight widget unavailable");
+        setConfig(nextConfig);
+      })
+      .catch(() => setFailed(true));
+  }, [id]);
+
+  const options = useMemo(
+    () => config ? JSON.parse(config.optionsJson) as Record<string, unknown> : null,
+    [config],
+  );
+  const widgetId = typeof options?.["widgetId"] === "string" ? options["widgetId"] : null;
+  const portalId = widgetId ? `portal-${widgetId}` : null;
+
+  useEffect(() => {
+    if (!config || !options || !widgetElement.current) return;
     let cancelled = false;
-    const portalId = `portal-${id}`;
     const fallbackTimer = window.setTimeout(() => {
       if (!cancelled && !readyRef.current) setFailed(true);
     }, 15_000);
 
-    void fetchElfsightWidget({ data: { id } })
-      .then(async (config) => {
-        if (!config || !host.current || cancelled) throw new Error("Elfsight widget unavailable");
-        const element = host.current;
-        const options = JSON.parse(config.optionsJson) as Record<string, unknown>;
-        element.className = "elfsight-widget-whatsapp-chat elfsight-widget";
-        element.setAttribute("data-elfsight-whatsapp-chat-options", encodeURIComponent(config.optionsJson));
-        element.setAttribute("data-elfsight-whatsapp-chat-version", config.version);
-        element.setAttribute("data-elfsight-widget-id", `elfsight-whatsapp-chat-${id}`);
-        await loadScript(config.scriptUrl);
-        if (cancelled || !host.current) return;
+    const element = widgetElement.current;
+    element.className = "elfsight-widget-whatsapp-chat elfsight-widget";
+    element.setAttribute("data-elfsight-whatsapp-chat-options", encodeURIComponent(config.optionsJson));
+    element.setAttribute("data-elfsight-whatsapp-chat-version", config.version);
+    element.setAttribute("data-elfsight-widget-id", `elfsight-whatsapp-chat-${id}`);
+    void loadScript(config.scriptUrl)
+      .then(() => {
+        if (cancelled || !widgetElement.current) return;
         const init = window.eappsWhatsappChat;
         if (typeof init !== "function") throw new Error("Elfsight runtime unavailable");
         init(element, options);
-        // The plugin renders in a named portal. It proves the runtime initialized without
-        // depending on a copied widget DOM or a hard-coded panel configuration.
         window.setTimeout(() => {
-          if (!cancelled && document.getElementById(portalId)) {
+          if (!cancelled && portalId && document.getElementById(portalId)) {
             readyRef.current = true;
             setReady(true);
           }
@@ -74,16 +95,23 @@ export function ElfsightWidget({ id, fallbackWhatsApp = false }: { id: ElfsightW
     return () => {
       cancelled = true;
       window.clearTimeout(fallbackTimer);
-      document.getElementById(portalId)?.remove();
+      if (portalId) document.getElementById(portalId)?.remove();
     };
-  }, [id]);
+  }, [config, id, options, portalId]);
 
   return (
     <div className="mt-6" data-cnf-elfsight-widget={id}>
       <div ref={host}>
-        {/* The local Elfsight runtime uses portal-{id}; supplying it here keeps embed-chat in
-            this layout instead of letting the runtime append a portal at document.body. */}
-        {id === 10 && <div id={`portal-${id}`} data-cnf-elfsight-embed-portal />}
+        <div ref={widgetElement} />
+        {/* The local plugin uses its configured widgetId to name the portal. Supplying the
+            same portal inside this host keeps Widget 10 embedded instead of appending it to body. */}
+        {id === 10 && portalId && (
+          <div
+            id={portalId}
+            className={`eapp-whatsapp-chat-root-layout-component eapps-whatsapp-chat-${widgetId}-custom-css-hook`}
+            data-cnf-elfsight-embed-portal
+          />
+        )}
       </div>
       {fallbackWhatsApp && failed && !ready && (
         <a
