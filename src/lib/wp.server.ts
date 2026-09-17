@@ -14,84 +14,158 @@ const STALE_TTL_MS = 24 * 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 10_000;
 type WpResponse = { json: any; total: number; totalPages: number };
 type CacheEntry = { at: number; value: WpResponse };
-const cache = new Map<string, CacheEntry>();
-const inFlight = new Map<string, Promise<WpResponse>>();
+type InFlightEntry = { promise: Promise<WpResponse>; startedAt: number };
+type WpFetchOptions = {
+  baseUrl?: string;
+  fetchImpl?: typeof fetch;
+  freshTtlMs?: number;
+  staleTtlMs?: number;
+  requestTimeoutMs?: number;
+  hardTimeoutMs?: number;
+  cacheMaxEntries?: number;
+  now?: () => number;
+  log?: (message: string, error?: unknown) => void;
+};
 
-function logFetch(path: string, startedAt: number, status: number | string, cacheState: string) {
-  console.info(
-    `[wp-fetch] endpoint=${path} duration_ms=${Date.now() - startedAt} status=${status} cache=${cacheState}`,
-  );
-}
+/**
+ * A small per-process cache for the WordPress REST upstream. The hard timeout is deliberately
+ * separate from AbortSignal: a socket or fetch implementation may ignore abortion, but callers
+ * must never inherit a permanently pending shared Promise.
+ */
+export function createWordPressFetchCache(options: WpFetchOptions = {}) {
+  const baseUrl = options.baseUrl ?? WP_BASE;
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const freshTtlMs = options.freshTtlMs ?? FRESH_TTL_MS;
+  const staleTtlMs = options.staleTtlMs ?? STALE_TTL_MS;
+  const requestTimeoutMs = options.requestTimeoutMs ?? REQUEST_TIMEOUT_MS;
+  const hardTimeoutMs = options.hardTimeoutMs ?? requestTimeoutMs + 1_000;
+  const cacheMaxEntries = options.cacheMaxEntries ?? 200;
+  const now = options.now ?? Date.now;
+  const log = options.log ?? ((message, error) => (error ? console.error(message, error) : console.info(message)));
+  const cache = new Map<string, CacheEntry>();
+  const inFlight = new Map<string, InFlightEntry>();
 
-async function fetchFromWordPress(path: string, cacheState: "miss" | "revalidate"): Promise<WpResponse> {
-  const existing = inFlight.get(path);
-  if (existing) {
-    logFetch(path, Date.now(), "pending", "deduped");
-    return existing;
+  function logFetch(path: string, startedAt: number, status: number | string, cacheState: string) {
+    log(`[wp-fetch] endpoint=${path} duration_ms=${now() - startedAt} status=${status} cache=${cacheState}`);
   }
 
-  const startedAt = Date.now();
-  const request = (async () => {
-    try {
-      const res = await fetch(`${WP_BASE}${path}`, {
-        headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      });
-      if (!res.ok) {
-        const body = await res.text();
-        logFetch(path, startedAt, res.status, cacheState);
-        console.error(`WordPress request failed [${res.status}] ${path}: ${body.slice(0, 500)}`);
-        throw new Error(`WordPress request failed [${res.status}]`);
-      }
-      const value = {
-        json: await res.json(),
-        total: Number(res.headers.get("x-wp-total") ?? "0"),
-        totalPages: Number(res.headers.get("x-wp-totalpages") ?? "0"),
-      };
-      cache.set(path, { at: Date.now(), value });
-      if (cache.size > 200) cache.delete(cache.keys().next().value as string);
-      logFetch(path, startedAt, res.status, cacheState);
-      return value;
-    } catch (error) {
-      if (error instanceof Error && error.name === "TimeoutError") {
-        logFetch(path, startedAt, "timeout", cacheState);
-        throw new Error(`WordPress request timed out after ${REQUEST_TIMEOUT_MS}ms`);
-      }
-      throw error;
-    } finally {
-      inFlight.delete(path);
+  // Empty `?slug=` answers are overwhelmingly crawler probes. Keeping them has no reuse value
+  // and used to evict active listing/taxonomy entries from this intentionally small cache.
+  function shouldCache(path: string, value: WpResponse) {
+    return !(path.includes("slug=") && Array.isArray(value.json) && value.json.length === 0);
+  }
+
+  function isLowPriority(path: string) {
+    return path.includes("slug=");
+  }
+
+  function cacheValue(path: string, value: WpResponse) {
+    if (!shouldCache(path, value)) return;
+    cache.set(path, { at: now(), value });
+    while (cache.size > cacheMaxEntries) {
+      const lowPriority = [...cache.keys()].find(isLowPriority);
+      cache.delete(lowPriority ?? cache.keys().next().value!);
     }
-  })();
-
-  inFlight.set(path, request);
-  return request;
-}
-
-async function wpFetch(path: string): Promise<WpResponse> {
-  const startedAt = Date.now();
-  const cached = cache.get(path);
-  const age = cached ? Date.now() - cached.at : Number.POSITIVE_INFINITY;
-  if (cached && age < FRESH_TTL_MS) {
-    logFetch(path, startedAt, 200, "hit");
-    return cached.value;
   }
-  if (cached && age < STALE_TTL_MS) {
-    logFetch(path, startedAt, 200, "stale");
-    void fetchFromWordPress(path, "revalidate").catch((error) => {
-      console.error(`[wp-fetch] background revalidation failed endpoint=${path}`, error);
+
+  function hardTimeout<T>(source: Promise<T>, path: string, cacheState: "miss" | "revalidate", startedAt: number, abandon: () => void) {
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        abandon();
+        logFetch(path, startedAt, "hard-timeout", cacheState);
+        reject(new Error(`WordPress request hard timed out after ${hardTimeoutMs}ms`));
+      }, hardTimeoutMs);
+      source.then(
+        (value) => { clearTimeout(timer); resolve(value); },
+        (error) => { clearTimeout(timer); reject(error); },
+      );
     });
-    return cached.value;
   }
-  try {
-    return await fetchFromWordPress(path, cached ? "revalidate" : "miss");
-  } catch (error) {
-    if (cached) {
-      logFetch(path, startedAt, "upstream-error", "stale-if-error");
+
+  function fetchFromWordPress(path: string, cacheState: "miss" | "revalidate"): Promise<WpResponse> {
+    const existing = inFlight.get(path);
+    if (existing) {
+      logFetch(path, now(), "pending", "deduped");
+      return existing.promise;
+    }
+
+    const startedAt = now();
+    let abandoned = false;
+    const source = (async () => {
+      try {
+        const res = await fetchImpl(`${baseUrl}${path}`, {
+          headers: { Accept: "application/json" },
+          signal: AbortSignal.timeout(requestTimeoutMs),
+        });
+        if (!res.ok) {
+          const body = await res.text();
+          logFetch(path, startedAt, res.status, cacheState);
+          log(`WordPress request failed [${res.status}] ${path}: ${body.slice(0, 500)}`);
+          throw new Error(`WordPress request failed [${res.status}]`);
+        }
+        const value = {
+          json: await res.json(),
+          total: Number(res.headers.get("x-wp-total") ?? "0"),
+          totalPages: Number(res.headers.get("x-wp-totalpages") ?? "0"),
+        };
+        // A late socket must not overwrite a newer retry's cache entry.
+        if (!abandoned) cacheValue(path, value);
+        logFetch(path, startedAt, res.status, cacheState);
+        return value;
+      } catch (error) {
+        if (error instanceof Error && error.name === "TimeoutError") {
+          logFetch(path, startedAt, "timeout", cacheState);
+          throw new Error(`WordPress request timed out after ${requestTimeoutMs}ms`);
+        }
+        throw error;
+      }
+    })();
+    // The race attaches a rejection handler, and this extra handler makes a late source
+    // rejection explicitly harmless after its wrapper has already timed out.
+    void source.catch(() => undefined);
+    const request = hardTimeout(source, path, cacheState, startedAt, () => { abandoned = true; });
+    const entry: InFlightEntry = { promise: request, startedAt };
+    inFlight.set(path, entry);
+    void request.finally(() => {
+      // Never let a late completion delete a newer retry for the same path.
+      if (inFlight.get(path) === entry) inFlight.delete(path);
+    }).catch(() => undefined);
+    return request;
+  }
+
+  async function wpFetch(path: string): Promise<WpResponse> {
+    const startedAt = now();
+    const cached = cache.get(path);
+    const age = cached ? now() - cached.at : Number.POSITIVE_INFINITY;
+    if (cached && age < freshTtlMs) {
+      logFetch(path, startedAt, 200, "hit");
       return cached.value;
     }
-    throw error;
+    if (cached && age < staleTtlMs) {
+      logFetch(path, startedAt, 200, "stale");
+      void fetchFromWordPress(path, "revalidate").catch((error) => {
+        log(`[wp-fetch] background revalidation failed endpoint=${path}`, error);
+      });
+      return cached.value;
+    }
+    try {
+      return await fetchFromWordPress(path, cached ? "revalidate" : "miss");
+    } catch (error) {
+      if (cached) {
+        logFetch(path, startedAt, "upstream-error", "stale-if-error");
+        return cached.value;
+      }
+      throw error;
+    }
   }
+
+  return {
+    wpFetch,
+    getDebugState: () => ({ cacheSize: cache.size, inFlightSize: inFlight.size, inFlightPaths: [...inFlight.keys()] }),
+  };
 }
+
+const { wpFetch } = createWordPressFetchCache();
 
 
 export type WpTerm = { id: number; name: string; slug: string; count: number };
