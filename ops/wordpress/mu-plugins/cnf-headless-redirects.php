@@ -46,6 +46,36 @@ function cnf_headless_taxonomy_destination( $term ) {
 	return '/blog';
 }
 
+/*
+ * Resolve the conventional /category/{slug}/ and /tag/{slug}/ paths before
+ * legacy canonical/redirection plugins can rewrite them to another www2 URL.
+ * A missing term deliberately falls through to WordPress and remains a 404.
+ */
+function cnf_headless_redirect_legacy_taxonomy_path() {
+	if ( ! cnf_headless_is_legacy_public_request() ) return;
+
+	$request_path = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) : '';
+	if ( preg_match( '#^/(category|tag)/([^/]+)/?$#', $request_path, $matches ) ) {
+		$taxonomy = 'category' === $matches[1] ? 'category' : 'post_tag';
+		$slug = sanitize_title( rawurldecode( $matches[2] ) );
+		$term = $slug ? get_term_by( 'slug', $slug, $taxonomy ) : false;
+		if ( $term instanceof WP_Term ) cnf_headless_redirect( cnf_headless_taxonomy_destination( $term ) );
+		return;
+	}
+
+	if ( preg_match( '#^/author/([^/]+)/?$#', $request_path, $matches ) ) {
+		$user = get_user_by( 'slug', sanitize_title( rawurldecode( $matches[1] ) ) );
+		if ( $user instanceof WP_User ) cnf_headless_redirect( '/blog' );
+		return;
+	}
+
+	/* Valid editorial date-archive paths, without matching feeds or arbitrary 404s. */
+	if ( preg_match( '#^/(?:19|20)\d{2}(?:/(?:0[1-9]|1[0-2])(?:/(?:0[1-9]|[12]\d|3[01]))?)?/?$#', $request_path ) ) {
+		cnf_headless_redirect( '/blog' );
+	}
+}
+add_action( 'parse_request', 'cnf_headless_redirect_legacy_taxonomy_path', 0 );
+
 function cnf_headless_redirect_legacy_content() {
 	if ( ! cnf_headless_is_legacy_public_request() || is_feed() ) return;
 
