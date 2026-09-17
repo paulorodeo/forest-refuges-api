@@ -53,3 +53,5 @@ function cnf_partner_origin_remove_rest_fields( $response, $post, $request ) {
 	return $response;
 }
 add_filter( 'rest_prepare_property', 'cnf_partner_origin_remove_rest_fields', 100, 3 );
+
+require_once __DIR__ . '/cnf-partner-property-commercial.php';
