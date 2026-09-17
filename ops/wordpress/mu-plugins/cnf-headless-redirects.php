@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Casa na Floresta - Headless redirects
- * Description: Sends public legacy WordPress property and editorial URLs to the headless frontend.
- * Version: 1.0.0
+ * Description: Sends public legacy editorial URLs to the headless frontend.
+ * Version: 1.1.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -93,14 +93,6 @@ function cnf_headless_redirect_legacy_content() {
 		}
 	}
 
-	if ( is_singular( 'property' ) ) {
-		$post = get_queried_object();
-		if ( $post instanceof WP_Post && 'publish' === $post->post_status ) {
-			cnf_headless_redirect( '/imovel/' . rawurlencode( $post->post_name ) );
-		}
-		return;
-	}
-
 	if ( is_singular( 'post' ) ) {
 		$post = get_queried_object();
 		if ( $post instanceof WP_Post && 'publish' === $post->post_status ) {
@@ -115,8 +107,23 @@ function cnf_headless_redirect_legacy_content() {
 		return;
 	}
 
-	if ( is_author() || is_date() || is_search() || is_post_type_archive( 'post' ) || is_tax( 'post_format' ) ) {
+	if ( is_author() || is_date() || is_post_type_archive( 'post' ) || is_tax( 'post_format' ) ) {
 		cnf_headless_redirect( '/blog' );
 	}
 }
 add_action( 'template_redirect', 'cnf_headless_redirect_legacy_content', 1 );
+
+/**
+ * Legacy Houzez property pages stay usable on www2, but advertise the public headless URL.
+ * Filters alter the canonical produced by the active SEO/core provider; they do not add HTML,
+ * which keeps a single canonical tag.
+ */
+function cnf_headless_property_canonical( $canonical, $post = null ) {
+	$post = $post instanceof WP_Post ? $post : get_queried_object();
+	if ( $post instanceof WP_Post && 'property' === $post->post_type && 'publish' === $post->post_status ) {
+		return CNF_HEADLESS_PUBLIC_ORIGIN . '/imovel/' . rawurlencode( $post->post_name );
+	}
+	return $canonical;
+}
+add_filter( 'wpseo_canonical', 'cnf_headless_property_canonical', 20, 1 );
+add_filter( 'get_canonical_url', 'cnf_headless_property_canonical', 20, 2 );
