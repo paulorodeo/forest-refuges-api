@@ -49,6 +49,20 @@ function cnf_headless_taxonomy_destination( $term ) {
 function cnf_headless_redirect_legacy_content() {
 	if ( ! cnf_headless_is_legacy_public_request() || is_feed() ) return;
 
+	/*
+	 * WordPress canonicalizes the historic /blog/{slug}/ format to /{slug}/
+	 * before it resolves the post query. Resolve that narrow public format here
+	 * so a legacy article reaches the headless canonical URL in one 301.
+	 */
+	$request_path = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) : '';
+	if ( preg_match( '#^/blog/([^/]+)/?$#', $request_path, $matches ) ) {
+		$slug = sanitize_title( rawurldecode( $matches[1] ) );
+		$post = $slug ? get_page_by_path( $slug, OBJECT, 'post' ) : null;
+		if ( $post instanceof WP_Post && 'publish' === $post->post_status ) {
+			cnf_headless_redirect( '/' . rawurlencode( $post->post_name ) );
+		}
+	}
+
 	if ( is_singular( 'property' ) ) {
 		$post = get_queried_object();
 		if ( $post instanceof WP_Post && 'publish' === $post->post_status ) {
