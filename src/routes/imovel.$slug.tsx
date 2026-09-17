@@ -134,8 +134,22 @@ function PropertyDetailPage() {
 
         <PropertyGallery images={gallery} />
 
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_320px]">
-          <div>
+        <div className="mt-8">
+          <aside className="mb-10 rounded-xl border border-border bg-card p-6">
+            <p className="text-sm text-muted-foreground">Valor</p>
+            <p className="mt-1 text-2xl font-medium text-primary">
+              {property.sourceType === "partner" || property.isSeasonal ? "Sob Consulta" : formatPrice(property.price, property.pricePostfix)}
+            </p>
+            {property.address && (
+              <p className="mt-4 text-sm text-muted-foreground">{property.address}</p>
+            )}
+            {property.refId && (
+              <p className="mt-4 text-xs text-muted-foreground">Referência {property.refId}</p>
+            )}
+          </aside>
+
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+            <div>
             <div className="flex flex-wrap gap-3">
               {property.typeName && (
                 <span className="rounded-full bg-secondary px-3 py-1.5 text-sm">
@@ -188,24 +202,15 @@ function PropertyDetailPage() {
                 </ul>
               </>
             )}
+            </div>
+            <aside className="h-fit rounded-xl border border-border bg-card p-6 lg:sticky lg:top-24" aria-label="Atendimento sobre este imóvel">
+              <h2 className="text-xl">Atendimento</h2>
+              <ElfsightWidget id={10} fallbackWhatsApp />
+              <p className="mt-3 text-xs text-muted-foreground">
+                A equipe Casa na Floresta fará o atendimento inicial e orientará os próximos passos.
+              </p>
+            </aside>
           </div>
-
-          <aside className="h-fit rounded-xl border border-border bg-card p-6 lg:sticky lg:top-24">
-            <p className="text-sm text-muted-foreground">Valor</p>
-            <p className="mt-1 text-2xl font-medium text-primary">
-              {property.sourceType === "partner" || property.isSeasonal ? "Sob Consulta" : formatPrice(property.price, property.pricePostfix)}
-            </p>
-            {property.address && (
-              <p className="mt-4 text-sm text-muted-foreground">{property.address}</p>
-            )}
-            {property.refId && (
-              <p className="mt-4 text-xs text-muted-foreground">Referência {property.refId}</p>
-            )}
-            <ElfsightWidget id={10} fallbackWhatsApp />
-            <p className="mt-3 text-xs text-muted-foreground">
-              A equipe Casa na Floresta fará o atendimento inicial e orientará os próximos passos.
-            </p>
-          </aside>
         </div>
         {related.properties.length > 0 && (
           <section className="mt-14" aria-labelledby="similar-properties">

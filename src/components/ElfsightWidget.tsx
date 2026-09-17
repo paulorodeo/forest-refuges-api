@@ -80,7 +80,11 @@ export function ElfsightWidget({ id, fallbackWhatsApp = false }: { id: ElfsightW
 
   return (
     <div className="mt-6" data-cnf-elfsight-widget={id}>
-      <div ref={host} />
+      <div ref={host}>
+        {/* The local Elfsight runtime uses portal-{id}; supplying it here keeps embed-chat in
+            this layout instead of letting the runtime append a portal at document.body. */}
+        {id === 10 && <div id={`portal-${id}`} data-cnf-elfsight-embed-portal />}
+      </div>
       {fallbackWhatsApp && failed && !ready && (
         <a
           href="https://wa.me/556540426464"

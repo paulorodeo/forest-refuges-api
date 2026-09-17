@@ -7,7 +7,9 @@ defined( 'ABSPATH' ) || exit;
 
 function cnf_elfsight_contextual_widget_id() {
 	if ( is_admin() || wp_doing_ajax() || wp_is_json_request() || is_feed() ) return 0;
-	if ( is_singular( 'property' ) ) return 10;
+	// The Houzez child-theme description template owns Widget 10 on property singles.
+	// Do not emit a second global/footer instance here.
+	if ( is_singular( 'property' ) ) return 0;
 	if ( is_page( 'servicos' ) ) return 2;
 	if (
 		is_post_type_archive( 'property' ) ||
