@@ -203,7 +203,7 @@ function PropertyDetailPage() {
               </>
             )}
             </div>
-            <aside className="h-fit rounded-xl border border-border bg-card p-6 lg:sticky lg:top-24" aria-label="Atendimento sobre este imóvel">
+            <aside className="h-fit min-w-0 rounded-xl border border-border bg-card p-6 lg:sticky lg:top-24" aria-label="Atendimento sobre este imóvel">
               <h2 className="text-xl">Atendimento</h2>
               <ElfsightWidget id={10} fallbackWhatsApp />
               <p className="mt-3 text-xs text-muted-foreground">

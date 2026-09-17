@@ -64,9 +64,16 @@ export function ElfsightWidget({ id, fallbackWhatsApp = false }: { id: ElfsightW
   );
   const widgetId = typeof options?.["widgetId"] === "string" ? options["widgetId"] : null;
   const portalId = widgetId ? `portal-${widgetId}` : null;
+  // Widget 10 is embedded in a responsive content column. The legacy runtime defaults an
+  // unspecified embed width to 400px, which overflows a 390px viewport; content settings
+  // remain managed by WordPress while this layout constraint follows its container.
+  const runtimeOptions = useMemo(
+    () => id === 10 && options ? { ...options, width: "100%" } : options,
+    [id, options],
+  );
 
   useEffect(() => {
-    if (!config || !options || !widgetElement.current) return;
+    if (!config || !runtimeOptions || !widgetElement.current) return;
     let cancelled = false;
     const fallbackTimer = window.setTimeout(() => {
       if (!cancelled && !readyRef.current) setFailed(true);
@@ -82,7 +89,7 @@ export function ElfsightWidget({ id, fallbackWhatsApp = false }: { id: ElfsightW
         if (cancelled || !widgetElement.current) return;
         const init = window.eappsWhatsappChat;
         if (typeof init !== "function") throw new Error("Elfsight runtime unavailable");
-        init(element, options);
+        init(element, runtimeOptions);
         window.setTimeout(() => {
           if (!cancelled && portalId && document.getElementById(portalId)) {
             readyRef.current = true;
@@ -97,7 +104,7 @@ export function ElfsightWidget({ id, fallbackWhatsApp = false }: { id: ElfsightW
       window.clearTimeout(fallbackTimer);
       if (portalId) document.getElementById(portalId)?.remove();
     };
-  }, [config, id, options, portalId]);
+  }, [config, id, portalId, runtimeOptions]);
 
   return (
     <div className="mt-6" data-cnf-elfsight-widget={id}>
