@@ -61,13 +61,15 @@ function BlogNotFound() {
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-24 text-center">
         <h1 className="text-3xl">Artigo não encontrado</h1>
-        <p className="mt-4 text-muted-foreground">Este conteúdo pode ter sido removido ou atualizado.</p>
+        <p className="mt-4 text-muted-foreground">
+          Este conteúdo pode ter sido removido ou atualizado.
+        </p>
         <Link
-          to="/blog"
+          to="/noticias"
           search={{ page: 1 }}
           className="mt-8 inline-flex rounded-md bg-accent px-6 py-3 text-sm font-medium text-accent-foreground"
         >
-          Ver todos os artigos
+          Ver todas as notícias
         </Link>
       </main>
       <SiteFooter />
@@ -87,11 +89,11 @@ function BlogDetailPage() {
             Não foi possível consultar o conteúdo agora. Tente novamente em alguns instantes.
           </p>
           <Link
-            to="/blog"
+            to="/noticias"
             search={{ page: 1 }}
             className="mt-8 inline-flex rounded-md bg-accent px-6 py-3 text-sm font-medium text-accent-foreground"
           >
-            Voltar ao blog
+            Voltar às notícias
           </Link>
         </main>
         <SiteFooter />
@@ -135,7 +137,9 @@ function BlogDetailPage() {
             <nav className="text-sm text-muted-foreground" aria-label="Trilha de navegação">
               <Link to="/">Início</Link>
               <span className="mx-2">/</span>
-              <Link to="/blog" search={{ page: 1 }}>Blog</Link>
+              <Link to="/noticias" search={{ page: 1 }}>
+                Notícias
+              </Link>
             </nav>
             <h1 className="mt-6 text-4xl leading-tight sm:text-5xl">{post.title}</h1>
             <div className="mt-5 flex flex-wrap gap-5 text-sm text-muted-foreground">
@@ -171,17 +175,25 @@ function BlogDetailPage() {
           <AdSenseSlot />
           {related.articles.length > 0 && (
             <section className="mx-auto max-w-6xl px-4 pb-12" aria-labelledby="related-articles">
-              <h2 id="related-articles" className="text-2xl">Artigos relacionados</h2>
+              <h2 id="related-articles" className="text-2xl">
+                Artigos relacionados
+              </h2>
               <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {related.articles.map(({ item }) => <BlogPostCard key={item.id} post={item} />)}
+                {related.articles.map(({ item }) => (
+                  <BlogPostCard key={item.id} post={item} />
+                ))}
               </div>
             </section>
           )}
           {related.properties.length > 0 && (
             <section className="mx-auto max-w-6xl px-4 pb-16" aria-labelledby="related-properties">
-              <h2 id="related-properties" className="text-2xl">Imóveis relacionados</h2>
+              <h2 id="related-properties" className="text-2xl">
+                Imóveis relacionados
+              </h2>
               <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {related.properties.map(({ item }) => <PropertyCard key={item.id} property={item} />)}
+                {related.properties.map(({ item }) => (
+                  <PropertyCard key={item.id} property={item} />
+                ))}
               </div>
             </section>
           )}

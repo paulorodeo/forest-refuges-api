@@ -15,6 +15,7 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as BuscaRouteImport } from './routes/busca'
 import { Route as ChacarasRouteImport } from './routes/chacaras'
 import { Route as ChalesRouteImport } from './routes/chales'
+import { Route as NoticiasRouteImport } from './routes/noticias'
 import { Route as PesqueirosRouteImport } from './routes/pesqueiros'
 import { Route as RefugiosUrbanosRouteImport } from './routes/refugios-urbanos'
 import { Route as RegioesRouteImport } from './routes/regioes'
@@ -25,6 +26,7 @@ import { Route as TiposDeImoveisRuraisRouteImport } from './routes/tipos-de-imov
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ImovelSlugRouteImport } from './routes/imovel.$slug'
+import { Route as NoticiasIndexRouteImport } from './routes/noticias.index'
 import { Route as RegiaoSlugRouteImport } from './routes/regiao.$slug'
 import { Route as TipoDePropriedadeSlugRouteImport } from './routes/tipo-de-propriedade.$slug'
 
@@ -56,6 +58,11 @@ const ChacarasRoute = ChacarasRouteImport.update({
 const ChalesRoute = ChalesRouteImport.update({
   id: '/chales',
   path: '/chales',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoticiasRoute = NoticiasRouteImport.update({
+  id: '/noticias',
+  path: '/noticias',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PesqueirosRoute = PesqueirosRouteImport.update({
@@ -108,6 +115,11 @@ const ImovelSlugRoute = ImovelSlugRouteImport.update({
   path: '/imovel/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NoticiasIndexRoute = NoticiasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => NoticiasRoute,
+} as any)
 const RegiaoSlugRoute = RegiaoSlugRouteImport.update({
   id: '/regiao/$slug',
   path: '/regiao/$slug',
@@ -126,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/busca': typeof BuscaRoute
   '/chacaras': typeof ChacarasRoute
   '/chales': typeof ChalesRoute
+  '/noticias': typeof NoticiasRouteWithChildren
   '/pesqueiros': typeof PesqueirosRoute
   '/refugios-urbanos': typeof RefugiosUrbanosRoute
   '/regioes': typeof RegioesRoute
@@ -138,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/regiao/$slug': typeof RegiaoSlugRoute
   '/tipo-de-propriedade/$slug': typeof TipoDePropriedadeSlugRoute
   '/blog/': typeof BlogIndexRoute
+  '/noticias/': typeof NoticiasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -157,6 +171,7 @@ export interface FileRoutesByTo {
   '/regiao/$slug': typeof RegiaoSlugRoute
   '/tipo-de-propriedade/$slug': typeof TipoDePropriedadeSlugRoute
   '/blog': typeof BlogIndexRoute
+  '/noticias': typeof NoticiasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -166,6 +181,7 @@ export interface FileRoutesById {
   '/busca': typeof BuscaRoute
   '/chacaras': typeof ChacarasRoute
   '/chales': typeof ChalesRoute
+  '/noticias': typeof NoticiasRouteWithChildren
   '/pesqueiros': typeof PesqueirosRoute
   '/refugios-urbanos': typeof RefugiosUrbanosRoute
   '/regioes': typeof RegioesRoute
@@ -178,6 +194,7 @@ export interface FileRoutesById {
   '/regiao/$slug': typeof RegiaoSlugRoute
   '/tipo-de-propriedade/$slug': typeof TipoDePropriedadeSlugRoute
   '/blog/': typeof BlogIndexRoute
+  '/noticias/': typeof NoticiasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -188,6 +205,7 @@ export interface FileRouteTypes {
     | '/busca'
     | '/chacaras'
     | '/chales'
+    | '/noticias'
     | '/pesqueiros'
     | '/refugios-urbanos'
     | '/regioes'
@@ -200,6 +218,7 @@ export interface FileRouteTypes {
     | '/regiao/$slug'
     | '/tipo-de-propriedade/$slug'
     | '/blog/'
+    | '/noticias/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -219,6 +238,7 @@ export interface FileRouteTypes {
     | '/regiao/$slug'
     | '/tipo-de-propriedade/$slug'
     | '/blog'
+    | '/noticias'
   id:
     | '__root__'
     | '/'
@@ -227,6 +247,7 @@ export interface FileRouteTypes {
     | '/busca'
     | '/chacaras'
     | '/chales'
+    | '/noticias'
     | '/pesqueiros'
     | '/refugios-urbanos'
     | '/regioes'
@@ -239,6 +260,7 @@ export interface FileRouteTypes {
     | '/regiao/$slug'
     | '/tipo-de-propriedade/$slug'
     | '/blog/'
+    | '/noticias/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -248,6 +270,7 @@ export interface RootRouteChildren {
   BuscaRoute: typeof BuscaRoute
   ChacarasRoute: typeof ChacarasRoute
   ChalesRoute: typeof ChalesRoute
+  NoticiasRoute: typeof NoticiasRouteWithChildren
   PesqueirosRoute: typeof PesqueirosRoute
   RefugiosUrbanosRoute: typeof RefugiosUrbanosRoute
   RegioesRoute: typeof RegioesRoute
@@ -302,6 +325,13 @@ declare module '@tanstack/react-router' {
       path: '/chales'
       fullPath: '/chales'
       preLoaderRoute: typeof ChalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/noticias': {
+      id: '/noticias'
+      path: '/noticias'
+      fullPath: '/noticias'
+      preLoaderRoute: typeof NoticiasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pesqueiros': {
@@ -374,6 +404,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImovelSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/noticias/': {
+      id: '/noticias/'
+      path: '/'
+      fullPath: '/noticias/'
+      preLoaderRoute: typeof NoticiasIndexRouteImport
+      parentRoute: typeof NoticiasRoute
+    }
     '/regiao/$slug': {
       id: '/regiao/$slug'
       path: '/regiao/$slug'
@@ -403,6 +440,18 @@ const BlogRouteChildren: BlogRouteChildren = {
 
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
+interface NoticiasRouteChildren {
+  NoticiasIndexRoute: typeof NoticiasIndexRoute
+}
+
+const NoticiasRouteChildren: NoticiasRouteChildren = {
+  NoticiasIndexRoute: NoticiasIndexRoute,
+}
+
+const NoticiasRouteWithChildren = NoticiasRoute._addFileChildren(
+  NoticiasRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
@@ -410,6 +459,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuscaRoute: BuscaRoute,
   ChacarasRoute: ChacarasRoute,
   ChalesRoute: ChalesRoute,
+  NoticiasRoute: NoticiasRouteWithChildren,
   PesqueirosRoute: PesqueirosRoute,
   RefugiosUrbanosRoute: RefugiosUrbanosRoute,
   RegioesRoute: RegioesRoute,

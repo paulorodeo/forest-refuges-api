@@ -7,7 +7,7 @@ const nav = [
   { to: "/tipos-de-imoveis-rurais", label: "Imóveis" },
   { to: "/regioes", label: "Regiões" },
   { to: "/temporada", label: "Temporada" },
-  { to: "/blog", label: "News" },
+  { to: "/noticias", label: "Notícias" },
 ] as const;
 
 export function SiteHeader() {
@@ -22,10 +22,7 @@ export function SiteHeader() {
           aria-label="Casa na Floresta — página inicial"
         >
           <picture>
-            <source
-              srcSet="/brand/casa-na-floresta-logo.avif"
-              type="image/avif"
-            />
+            <source srcSet="/brand/casa-na-floresta-logo.avif" type="image/avif" />
             <source srcSet="/brand/casa-na-floresta-logo.webp" type="image/webp" />
             <img
               src="/brand/casa-na-floresta-logo.png"
@@ -87,7 +84,17 @@ export function SiteHeader() {
                 </Link>
               </li>
             ))}
-            <li><a href="https://wa.me/556540426464" target="_blank" rel="noreferrer" onClick={() => setOpen(false)} className="mt-1 block rounded-md bg-accent px-3 py-2 text-center text-sm font-medium text-accent-foreground">Anuncie</a></li>
+            <li>
+              <a
+                href="https://wa.me/556540426464"
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setOpen(false)}
+                className="mt-1 block rounded-md bg-accent px-3 py-2 text-center text-sm font-medium text-accent-foreground"
+              >
+                Anuncie
+              </a>
+            </li>
           </ul>
         </nav>
       )}
