@@ -9,10 +9,12 @@ import { Pagination } from "@/components/Pagination";
 export const Route = createFileRoute("/noticias/")({
   validateSearch: (search: Record<string, unknown>) => ({
     page:
-      typeof search["page"] === "number" ? Math.max(1, Math.trunc(search["page"] as number)) : 1,
+      typeof search["page"] === "number"
+        ? Math.max(1, Math.trunc(search["page"] as number))
+        : undefined,
   }),
   loaderDeps: ({ search }) => search,
-  loader: ({ deps }) => fetchBlogPosts({ data: { page: deps.page, perPage: 18 } }),
+  loader: ({ deps }) => fetchBlogPosts({ data: { page: deps.page ?? 1, perPage: 18 } }),
   head: () => ({
     meta: [
       { title: "Notícias Casa na Floresta | Guias, turismo e mercado" },

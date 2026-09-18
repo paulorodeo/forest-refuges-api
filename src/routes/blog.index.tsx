@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/blog/")({
   loader: () => {
-    throw redirect({ to: "/noticias", search: { page: 1 }, statusCode: 301 });
+    throw redirect({ to: "/noticias", statusCode: 301 });
   },
   head: () => ({
     meta: [
